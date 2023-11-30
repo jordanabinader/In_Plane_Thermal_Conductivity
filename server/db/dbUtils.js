@@ -76,24 +76,29 @@ async function startTest(form) {
     // Create additional tables with insertId
     const tablesToCreate = [
       { name: testSettingTableName, fields: (table) => {
-        table.float('controlMode').notNullable();
-        table.float('frequency').notNullable();
-        table.float('amplitude').notNullable();
-        table.datetime('datetime').notNullable();
+        table.float('controlMode');
+        table.float('frequency');
+        table.float('amplitude');
+        table.datetime('datetime');
       }},
       { name: powerTableName, fields: (table) => {
-        table.float('heaterNum').notNullable();
-        table.float('mV').notNullable();
-        table.float('mA').notNullable();
-        table.float('dutyCycle').notNullable();
-        table.datetime('datetime').notNullable();
+        table.float('heaterNum');
+        table.float('mV');
+        table.float('mA');
+        table.float('dutyCycle');
+        table.datetime('datetime');
       }},
       { name: temperatureTableName, fields: (table) => {
         table.datetime('datetime').defaultTo(knex.fn.now());
-        table.float('relTime').notNullable();
-        table.float('temp1').notNullable();
-        table.float('temp2').notNullable();
+        table.float('relTime');
+        table.float('temp1');
+        table.float('temp2');
         table.float('temp3');
+        table.float('temp4');
+        table.float('temp5');
+        table.float('temp6');
+        table.float('temp7');
+        table.float('temp8');
         // Add other temperature columns as needed
       }}
     ];
