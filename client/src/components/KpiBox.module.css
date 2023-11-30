@@ -1,0 +1,23 @@
+.value {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px; 
+    background: #fcdede;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width:200px;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #faeded;
+}
+
+.title {
+    font-weight: bold;
+    color: #fa5353;
+}
+
+.subtext {
+    color: rgb(133, 131, 131);
+    font-size: large;
+}

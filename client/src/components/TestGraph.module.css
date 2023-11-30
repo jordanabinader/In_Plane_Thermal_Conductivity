@@ -1,0 +1,31 @@
+.buttonBox {
+    width: 200px;
+    margin: 20px auto;
+    position: relative;
+    border-radius: 30px;
+    border: 1px solid #E5E7EB;
+    background: #fff;
+}
+
+.toggleBtn {
+    padding: 5px 25px;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    outline: none;
+    position: relative;
+    text-align: center;
+    font-weight: bold;
+    color: rgb(92, 91, 91);
+}
+
+.btn {
+    left: 0;
+    top: 0;
+    position: absolute;
+    width: 90px;
+    height: 100%;
+    background: rgb(122, 223, 125);
+    border-radius: 30px;
+    transition: .5s;
+}
