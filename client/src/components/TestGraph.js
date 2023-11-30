@@ -69,7 +69,7 @@ const TestGraph = (testIdIn) => {
           }
 
           try {
-            const response = await axios.post('http://localhost:3001/test-setting-update');
+            const response = await axios.put('http://localhost:3001/test-setting-update');
             console.log('Test changed successfully:', response.data);
         } catch (error) {
             console.error('Error changing test:', error);
