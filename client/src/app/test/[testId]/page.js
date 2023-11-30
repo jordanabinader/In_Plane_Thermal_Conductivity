@@ -17,7 +17,6 @@ async function queryRowsByTestId(tableName, testId) {
 const TestPage = (props) => {
   const { testId } = props.params;
   const [testName, setTestName] = useState('');
-
   useEffect(() => {
     queryRowsByTestId('test_directory', testId)
       .then(data => {
@@ -39,7 +38,9 @@ const TestPage = (props) => {
         <h1 className="text-4xl font-bold tracking-tight text-gray-700">{testName || 'Loading...'}</h1>
       </div>
       <div className='mt-6'>
-        <TestGraph/>
+        <TestGraph 
+        testIdIn = {testId}
+        />
       </div>
     </div>
   );

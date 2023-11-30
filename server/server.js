@@ -41,9 +41,21 @@ app.delete('/deleteTable/:tableName', async (req, res) => {
 app.post('/startTest', async (req, res) => {
   try {
     result = await dbFunctions.startTest(req.body);
-    res.json({ message: 'Test started successfully', testId: result.testId });
+    res.json({ message: 'Test started successfully', testId: result.testId, frequency: result.frequency, amplitude: result.amplitude });
   } catch (error) {
     res.status(500).send(error.message);
+  }
+});
+
+// Route to change test settings
+app.post('/changeTestSetting/:insertId', async (req, res) => {
+  const insertId = req.params.insertId;
+  const form = req.body;
+  try {
+    const result = await dbFunctions.changeTestSetting(form, insertId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
