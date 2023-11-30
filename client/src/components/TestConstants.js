@@ -90,7 +90,7 @@ const TestConstants = () => {
             <InputField
               label="Material Density"
               id="density"
-              name="Density"
+              name="density"
               placeholder="8.96"
               unit="g/cm3"
               value={testSetup.density}
@@ -99,19 +99,19 @@ const TestConstants = () => {
             <InputField
               label="Specific Heat Capacity"
               id="cp"
-              name="specificHeat"
+              name="specificHeatCapacity"
               placeholder="0.385"
               unit="J/Kg.C"
-              value={testSetup.specificHeat}
+              value={testSetup.specificHeatCapacity}
               onChange={handleChange}
             />
             <InputField
               label="Thermocouple Distance"
               id="tcdistance"
-              name="tcdistance"
+              name="tcDistance"
               placeholder="5"
               unit="mm"
-              value={testSetup.tcdistance}
+              value={testSetup.tcDistance}
               onChange={handleChange}
             />
           </div>

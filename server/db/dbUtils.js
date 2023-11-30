@@ -35,6 +35,25 @@ async function deleteTable(tableName) {
   }
 }
 
+async function changeTestSetting(form, insertId) {
+  try {
+    console.log(form)
+    changedSetting = await knex(`${testSettingTableName}_${insertId}`).insert({
+      datetime: new Date().toISOString().replace('T', ' ').replace('Z', ''),
+      controlMode: 'manual',
+      frequency: form.frequency,
+      amplitude: form.amplitude,
+    });
+
+    return {
+      frequency: changedSetting.frequency,
+      amplitude: changedSetting.amplitude
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function startTest(form) {
   
   try {
@@ -51,8 +70,9 @@ async function startTest(form) {
         table.float('specificHeatCapacity');
         table.datetime('datetime');
         table.float('diffusivity');
-        table.float('tcDistance');
+        table.integer('tcDistance');
         table.float('conductivty');
+        table.boolean('active');
       });
       console.log('Table created');
     } else {
@@ -67,6 +87,7 @@ async function startTest(form) {
       density: form.density,
       specificHeatCapacity: form.specificHeatCapacity,
       tcDistance: form.tcDistance,
+      active: 'True',
     });
 
     // SQLite3 last inserted row ID
@@ -109,8 +130,19 @@ async function startTest(form) {
         await knex.schema.createTable(tableName, fields);
       }
     }
+    
+    // Insert data into testDirectoryTable
+    const testSettingInit = await knex(`${testSettingTableName}_${insertId}`).insert({
+      datetime: new Date().toISOString().replace('T', ' ').replace('Z', ''),
+      controlMode: 'manual',
+      frequency: 0,
+      amplitude: 0,
+    });
+
     return {
-      testId: insertId
+      testId: insertId,
+      frequency: testSettingInit.frequency,
+      amplitude: testSettingInit.amplitude
     };
 
   } catch (error) {
@@ -125,4 +157,5 @@ module.exports = {
   queryRowsByTestId,
   deleteTable,
   startTest,
+  changeTestSetting,
 };

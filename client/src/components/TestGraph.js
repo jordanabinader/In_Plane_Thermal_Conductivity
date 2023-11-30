@@ -8,14 +8,14 @@ import stylesBox from './KpiBox.module.css'
 import axios from 'axios';
 
 
-const TestGraph = (frequency, amplitude, dutyCycle) => {
+const TestGraph = (testIdIn) => {
     const router = useRouter();
     const [togglePosition, setTogglePosition] = useState('left');
     const [buttonStyle, setButtonStyle] = useState({});
     const [formData, setFormData] = useState({
-        frequency: frequency,
-        amplitude: amplitude,
-        duty_ratio: dutyCycle,
+        frequency: 0,
+        amplitude: 0,
+        duty_ratio: 0,
     });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModal2Open, setIsModal2Open] = useState(false);
@@ -57,21 +57,24 @@ const TestGraph = (frequency, amplitude, dutyCycle) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
     };
     
-    const handleSubmitChanges = async (e) => {
+    const handleSubmitChanges = async (formData) => {
         handleCloseModal();
-        e.preventDefault();
-        // Send formData to the API endpoint
-        //const response = await fetch('YOUR_API_ENDPOINT', {
-           // method: 'POST',
-            //headers: {
-             //   'Content-Type': 'application/json',
-            //},
-            //body: JSON.stringify(formData),
-        //});
+        try {
+            const response = await axios.post(`http://localhost:80/changeTestSetting/${testIdIn.testIdIn}`, formData, testIdIn);
+            console.log(response.data);
+        
+          } catch (error) {
+            console.error("Error updating test setting:", error.response);
+            throw error;
+          }
 
-        //const data = await response.json();
-        console.log(formData); // Or handle the response as needed
-    };
+          try {
+            const response = await axios.post('http://localhost:3001/test-setting-update');
+            console.log('Test changed successfully:', response.data);
+        } catch (error) {
+            console.error('Error changing test:', error);
+        }
+        };
 
     return (
         <div className='bg-white'>
@@ -128,7 +131,7 @@ const TestGraph = (frequency, amplitude, dutyCycle) => {
                                     label="Frequency"
                                     id="frequency"
                                     name="frequency"
-                                    placeholder="60"
+                                    placeholder={formData.frequency}
                                     unit='Hz'
                                     value={formData.frequency}
                                     onChange={handleTextChange}
@@ -137,7 +140,7 @@ const TestGraph = (frequency, amplitude, dutyCycle) => {
                                     label="Amplitude"
                                     id="amplitude"
                                     name="amplitude"
-                                    placeholder="0"
+                                    placeholder={formData.amplitude}
                                     value={formData.amplitude}
                                     onChange={handleTextChange}
                                     />                        
@@ -172,7 +175,7 @@ const TestGraph = (frequency, amplitude, dutyCycle) => {
                                 <Modal 
                                     action="Submit Changes"
                                     onCancel={handleCloseModal}
-                                    onSubmit={handleSubmitChanges}
+                                    onSubmit={() => handleSubmitChanges(formData)}
                                 />
                                 )}
                             </div>  
