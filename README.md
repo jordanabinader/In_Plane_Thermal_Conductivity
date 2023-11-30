@@ -41,7 +41,7 @@ npm start
 
 - **Start the client** (in a new terminal window):
 cd client
-npm start
+node server.js
 
 
 ## Usage
