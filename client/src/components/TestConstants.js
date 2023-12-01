@@ -9,7 +9,8 @@ import axios from 'axios';
 const TestConstants = () => {
 
   const router = useRouter();
-
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null);
   const [testSetup, setTestSetup] = useState({
     testName: '',
     material: '',
@@ -30,7 +31,11 @@ const TestConstants = () => {
 
   const handleSubmit = async (testSetup) => {
 
+    let timeoutId;
+
     try {
+
+      setIsLoading(true);
       let dataToSend;
       if (testSetup instanceof FormData) {
         dataToSend = Object.fromEntries(testSetup.entries());
@@ -43,6 +48,11 @@ const TestConstants = () => {
       // Send request to controls and what's needed
 
       console.log('Test started successfully:', response.data);
+
+      timeoutId = setTimeout(() => {
+        setIsLoading(false);
+      }, 20 * 1000 * 1000);
+
       // Redirect to test of testId
       const testId = response.data.testId; 
       router.push(`/test/${testId}`);
@@ -50,6 +60,10 @@ const TestConstants = () => {
     } catch (error) {
       console.error('Error starting test:', error);
       // Handle errors here (e.g., showing error messages to the user)
+
+    } finally {
+      clearTimeout(timeoutId); // Clear the timeout if response is received early
+      setIsLoading(false); // End loading
     }
   };
 
@@ -60,9 +74,9 @@ const TestConstants = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   }
-
   return (
     <form className='bg-gray-100'>
+      {isLoading ? <div>Loading...</div> : null}
       <div className="mx-auto grid max-w-2xl gap-x-8 gap-y-16 px-4 py-2 sm:px-6 sm:py-20 lg:max-w-7xl lg:grid-cols-2 lg:px-8">
         <div className='flex justify-center items-center'>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
