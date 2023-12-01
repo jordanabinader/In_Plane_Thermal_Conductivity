@@ -40,7 +40,15 @@ ABS_CLIENT_PATH = (REPO_BASE_PATH / REPO_CLIENT_PATH).as_posix()
 
 #########################################################################
 #AIOHTTP
-async def startTestHandler(request):
+async def startTestHandler(request:web.Request) -> web.StreamResponse:
+    """Starts the test off by launching the required files
+
+    Args:
+        request (web.Request): request info
+
+    Returns:
+        web.StreamResponse: json data from alive_info with either 200 or 404
+    """
 
     #Dictionary of processes that have an endpoint to make sure that they are running fully
     process_info = {
