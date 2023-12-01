@@ -46,6 +46,7 @@ for h in [DUTY_CYCLE_CHANGE_HEADER, INA260_DATA_HEADER, HEATER_NOT_FOUND_ERROR]:
 #Webhook Endpoints
 TEST_SETTING_ENDPOINT = "/test-setting-update"
 END_TEST_ENDPOINT = "/test-end"
+SCRIPT_ALIVE_ENDPOINT = "/script-alive"
 
 
 class SerialComm(asyncio.Protocol):
@@ -90,6 +91,7 @@ class SerialComm(asyncio.Protocol):
         self.frequency = 0 #Rad/s
         self.amplitude = 0 # units depend on control mode, see self.CONTROL_OPTIONS
         self.start_time = time.time()
+        self.connected = False
 
     #########################################################################
     #Serial Communication
@@ -99,6 +101,7 @@ class SerialComm(asyncio.Protocol):
         Args:
             transport (serial_asyncio.SerialTransport): input gets passed by erial_asyncio.create_serial_connection()
         """
+        self.connected = True
         self.transport = transport
         self.pat = b'['+ACCEPTABLE_MSG_HEADERS+b'].{'+str(MSG_LEN-2).encode()+b'}'+TERMINATION.to_bytes()
         self.read_buf = bytes()
@@ -119,6 +122,7 @@ class SerialComm(asyncio.Protocol):
         Args:
             exc (Exception): Thrown exception
         """
+        self.connected = False
         print(f"SerialReader Closed with exception: {exc}")
     
     async def parseMsg(self, msg:bytes):
@@ -188,7 +192,8 @@ class SerialComm(asyncio.Protocol):
         app = web.Application()
         app.add_routes([
             web.put(TEST_SETTING_ENDPOINT, self.testSettingUpdateHook),
-            web.put(END_TEST_ENDPOINT, self.endTestHook)
+            web.put(END_TEST_ENDPOINT, self.endTestHook),
+            web.get(SCRIPT_ALIVE_ENDPOINT, self.aliveHook)
         ])
         runner = web.AppRunner(app)
         await runner.setup()
@@ -224,7 +229,7 @@ class SerialComm(asyncio.Protocol):
         return curr_setting
 
     async def endTestHook(self, request:web.Request)-> web.StreamResponse:
-        """_summary_
+        """ End test endpoint to cleanly close out the serial device and ensure that the heaters are off
 
         Args:
             request (web.Request): content of the put request, doesn't really matter for this
@@ -235,6 +240,22 @@ class SerialComm(asyncio.Protocol):
         signal.raise_signal(signal.SIGINT) #Raise signal.SIGINT to get caught by signalGracefulExit
         return web.Response(status=200)
 
+    async def aliveHook(self, request:web.Request)-> web.StreamResponse:
+        """ Endpoint to check to make sure this webserver is alive, and the serial device is connected
+
+        Args:
+            request (web.Request): _description_
+
+        Returns:
+            web.StreamResponse: _description_
+        """
+        #If the serial device is connected
+        if self.connected == True:
+            ret = web.Response(status=200)
+        else: # If serial device isn't connected
+            ret = web.Response(status = 404)
+        
+        return ret
     
     #########################################################################
     #Heater Control Loops
