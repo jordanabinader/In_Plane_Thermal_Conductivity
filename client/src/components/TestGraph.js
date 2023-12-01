@@ -77,9 +77,9 @@ const TestGraph = (testIdIn) => {
         };
 
     return (
-        <div className='bg-white'>
-            <div className='grid md:grid-cols-2 grid-cols-1'>
-                <div className='rounded-md flex flex-col justify-between'>
+        <div className='bg-white h-screen'>
+            <div className='grid md:grid-cols-[4fr_2fr] grid-cols-1 h-1/2'>
+                <div className='rounded-md'>
                     <div className="bg-gray-200 h-full">
                     <iframe
                         title="Bokeh Plot"
@@ -106,17 +106,7 @@ const TestGraph = (testIdIn) => {
                         )}
                     </div>
                 </div>
-                <div>
-                    <div className='flex justify-center items-center ml-12 gap-40 border-b border-gray-100'>
-                        <div className={stylesBox.value}>
-                            <div className={stylesBox.title}>Diffusivity</div>
-                            <div className={stylesBox.subtext}>xx</div>
-                        </div>
-                        <div className={stylesBox.value}>
-                            <div className={stylesBox.title}>Conductivity</div>
-                            <div className={stylesBox.subtext}>xx</div>
-                        </div>
-                    </div>
+                <div className='h-full'>
                     <div className={styles.body}>
                         <div className={styles.buttonBox}>
                             <div id="btn" style={buttonStyle} className={styles.btn}></div>
