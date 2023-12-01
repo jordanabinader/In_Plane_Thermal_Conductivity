@@ -35,12 +35,12 @@ This project integrates various components such as server, database, web applica
 - Run the database schema setup scripts.
 
 ### Running the Application
-- **Start the server**:
-cd server
+- **Start the client**:
+cd client
 npm start
 
-- **Start the client** (in a new terminal window):
-cd client
+- **Start the server** (in a new terminal window):
+cd server
 node server.js
 
 
