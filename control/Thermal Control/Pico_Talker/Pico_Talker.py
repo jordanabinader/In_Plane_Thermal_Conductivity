@@ -14,6 +14,9 @@ import signal
 import os
 from typing import Tuple, List
 
+#########################################################################
+#FILE VARIABLES
+
 #Variables for use inititializing databases
 TEST_DIRECTORY_TABLE_NAME = "test_directory"
 POWER_TABLE_NAME_BASE = "power_table" #Base strings for the test specific tables that the test name gets appended to with testNameTableFormatter
@@ -30,18 +33,6 @@ HEATER_NOT_FOUND_ERROR = 0x21
 DUTY_CYCLE_CHANGE_HEADER = (0x01, 0x02, 0x03) # Heater 1, Heater 2, Both Heaters
 INA260_DATA_HEADER = (0x11, 0x12)
 TERMINATION = 0xff
-
-
-#Data to be collected and updated from SQLite Database
-control_modes_map = {
-    "power":0,
-    "temperature":1 #Currently not supported
-}
-control_mode = 0 #see control_modes_map
-control_freq = 0.1 #Hz, desired frequency of the output curve whether that is power or temperature
-# duty_cycle = [0, 0] #% duty cycle of each heater, useful for ensuring that the power output lines up properly
-control_amplitude = 1 #Amplitude, either in Watts or degrees celcius depending on control mode
-
 
 #For regex searching
 ACCEPTABLE_MSG_HEADERS = bytes() #Flatten acceptable headers, for use in parsing serial messages
