@@ -9,7 +9,7 @@ CHANNELS_TO_ADD = 6  # +6 TCs gets to 8 Channels open. Maximum of 6.
 CYCLES_UNTIL_LARGE_READ = 50
 TC_LAG = 0.068
 PRINT_LOG = False
-DATABASE_NAME = 'angstronomers.sqlite3'
+DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
 TEST_ID = "1"  # TODO
 TABLE_NAME = "temperature_" + TEST_ID
@@ -36,11 +36,12 @@ cursor = conn.cursor()
 # Get Test ID
 cursor.execute(f'''SELECT testId
                 FROM {TEST_DIR_TABLE_NAME}
-                ORDER DESC
+                ORDER BY testId DESC
                 LIMIT 1''')
 resultstid = cursor.fetchall()
 TEST_ID = str(resultstid[0])
 TABLE_NAME = "temperature_" + TEST_ID
+print(TABLE_NAME)
 
 # Create chandle and status ready for use
 chandle = ctypes.c_int16()
