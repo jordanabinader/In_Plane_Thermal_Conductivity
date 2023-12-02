@@ -9,25 +9,38 @@ CHANNELS_TO_ADD = 6  # +6 TCs gets to 8 Channels open. Maximum of 6.
 CYCLES_UNTIL_LARGE_READ = 50
 TC_LAG = 0.068
 PRINT_LOG = False
+DATABASE_NAME = 'angstronomers.sqlite3'
+TEST_DIR_TABLE_NAME = "test_directory"
+TEST_ID = "1"  # TODO
+TABLE_NAME = "temperature_" + TEST_ID
 
 # Connect to the database
-conn = sqlite3.connect('your_database.db')
+conn = sqlite3.connect('angstronomers.sqlite3')
 
 # Create a cursor
 cursor = conn.cursor()
 
 # Create a table
-cursor.execute('''CREATE TABLE IF NOT EXISTS Data1 (
-                date_time TEXT DEFAULT CURRENT_TIMESTAMP,
-                relTime REAL NOT NULL,
-                temp1 REAL NOT NULL,
-                temp2 REAL NOT NULL,
-                temp3 REAL,
-                temp4 REAL,
-                temp5 REAL,
-                temp6 REAL,
-                temp7 REAL,
-                temp8 REAL)''')
+# cursor.execute(f'''CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
+#                 date_time TEXT DEFAULT CURRENT_TIMESTAMP,
+#                 relTime REAL NOT NULL,
+#                 temp1 REAL NOT NULL,
+#                 temp2 REAL NOT NULL,
+#                 temp3 REAL,
+#                 temp4 REAL,
+#                 temp5 REAL,
+#                 temp6 REAL,
+#                 temp7 REAL,
+#                 temp8 REAL)''')
+
+# Get Test ID
+cursor.execute(f'''SELECT testId
+                FROM {TEST_DIR_TABLE_NAME}
+                ORDER DESC
+                LIMIT 1''')
+resultstid = cursor.fetchall()
+TEST_ID = str(resultstid[0])
+TABLE_NAME = "temperature_" + TEST_ID
 
 # Create chandle and status ready for use
 chandle = ctypes.c_int16()
@@ -83,7 +96,7 @@ while 1:
         tc08.usb_tc08_get_single(chandle, ctypes.byref(temp), ctypes.byref(overflow), units)
         elapsed_time = end_time - start_time
         # Insert Values
-        cursor.execute("INSERT INTO Data1 (relTime, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8) "
+        cursor.execute(f"INSERT INTO {TABLE_NAME} (relTime, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8) "
                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                        (elapsed_time, temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8]))
 
@@ -100,7 +113,7 @@ while 1:
         tc08.usb_tc08_get_single(chandle, ctypes.byref(temp), ctypes.byref(overflow), units)
         elapsed_time = end_time - start_time
         # Insert Values
-        cursor.execute("INSERT INTO Data1 (relTime, temp1, temp2) VALUES (?, ?, ?)",
+        cursor.execute(f"INSERT INTO {TABLE_NAME} (relTime, temp1, temp2) VALUES (?, ?, ?)",
                        (elapsed_time, temp[1], temp[2]))
 
     if PRINT_LOG:

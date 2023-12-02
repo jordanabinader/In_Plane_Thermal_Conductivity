@@ -1,4 +1,5 @@
 # writeFromCSV.py
+# NOTE: REQUIRES UPDATE TODO
 # Debug File, not to be ran in production
 # Writes to a database temperature data from CSV file
 # Speed can be set to simulate live data transfer
