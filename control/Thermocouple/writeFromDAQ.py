@@ -15,7 +15,7 @@ TEST_ID = "1"  # TODO
 TABLE_NAME = "temperature_" + TEST_ID
 
 # Connect to the database
-conn = sqlite3.connect('angstronomers.sqlite3')
+conn = sqlite3.connect(DATABASE_NAME)
 
 # Create a cursor
 cursor = conn.cursor()
