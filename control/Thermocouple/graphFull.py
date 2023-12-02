@@ -22,7 +22,7 @@ TEST_ID = "1"
 TABLE_NAME_TC = "temperature_table_" + TEST_ID
 TABLE_NAME_PARAM = "test_settings_" + TEST_ID
 
-# Set from Database Query into Table
+# Set from Database Query into Table / user input
 OPAMP_FREQUENCY = .002  # 1/OpAmp Period, .002 for csv
 
 # Set from Database Query, Constants
@@ -32,7 +32,7 @@ L = .72  # Distance between thermocouples
 
 # Constant
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
-SAMPLING_RATE = 1 / 0.01  # 1/.01 for csv, 1/.2 for daq (can safely be inaccurate)
+SAMPLING_RATE = 1 / 0.01  # 1/.01 for csv, 1/0.316745311 for daq (can safely be inaccurate)
 DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
 
@@ -130,15 +130,16 @@ def modify_doc(doc):
                    'temps1': temps1_pr, 'temps2': temps2_pr}
 
     def update_plot(attrname, old, new):
+        # exceptions for boundary inputs
         try:
             lower_bound = float(lb_input.value)
         except ValueError:
-            print("Invalid input. Please enter an integer.")
+            print("Invalid input. Please enter a number.")
             return
         try:
             upper_bound = float(ub_input.value)
         except ValueError:
-            print("Invalid input. Please enter an integer.")
+            print("Invalid input. Please enter a number.")
             return
         if lower_bound >= upper_bound:
             print("Lower Bound must be smaller.")
@@ -155,6 +156,19 @@ def modify_doc(doc):
         times2_plot = times2[lb_index:ub_index]
         temps1_plot = temps1_pr[lb_index:ub_index]
         temps2_plot = temps2_pr[lb_index:ub_index]
+        
+        # exception for frequency input
+        try:
+            using_frequency = float(frq_input.value)
+        except ValueError:
+            print("Invalid frequency input. Please enter a number.")
+            return
+        if using_frequency == 0:
+            print("Frequency must be a non-zero value")
+            return
+        
+        global OPAMP_FREQUENCY
+        OPAMP_FREQUENCY = using_frequency
 
         params1, adjusted_r_squared1 = ut.fit_data(temps1_plot, times1_plot, OPAMP_FREQUENCY)
         params2, adjusted_r_squared2 = ut.fit_data(temps2_plot, times2_plot, OPAMP_FREQUENCY)
@@ -227,6 +241,10 @@ def modify_doc(doc):
     lb_input.on_change("value", update_plot)
     ub_input.on_change("value", update_plot)
     
+    # Create input field for frequency
+    frq_input = TextInput(value=".01", title="Enter Frequency (Hz):")
+    frq_input.on_change("value", update_plot)
+    
     def save_to_csv():
         # Connect to the database
         conn = sqlite3.connect(DATABASE_NAME)
@@ -253,7 +271,7 @@ def modify_doc(doc):
     save_button = Button(label='Save to CSV', button_type='success')
     save_button.on_click(save_to_csv)
 
-    doc.add_root(column(row(plot, column(lb_input, ub_input), save_button, param_table),
+    doc.add_root(column(row(plot, column(lb_input, ub_input, frq_input), save_button, param_table),
                         row(plot2, column(textL, textDT, textM, textN)),
                         row(textD, textC, textR1, textR2)))
 
@@ -261,11 +279,10 @@ def modify_doc(doc):
 @app.route('/<test_id>', methods=['GET'])
 def bkapp_page(test_id):
     global TEST_ID, TABLE_NAME_PARAM, TABLE_NAME_TC
-    if test_id == "favicon.ico":
-        return
-    TEST_ID = test_id
-    TABLE_NAME_TC = "temperature_table_" + TEST_ID
-    TABLE_NAME_PARAM = "test_settings_" + TEST_ID
+    if test_id != "favicon.ico":
+        TEST_ID = test_id
+        TABLE_NAME_TC = "temperature_table_" + TEST_ID
+        TABLE_NAME_PARAM = "test_settings_" + TEST_ID
     script = server_document('http://localhost:5006/bkapp')
     return render_template("embed.html", script=script, template="Flask")
 
