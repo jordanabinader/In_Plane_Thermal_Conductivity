@@ -83,11 +83,11 @@ class SerialComm(asyncio.Protocol):
 
         #Test Setting Information
         self.CONTROL_OPTIONS = {
-            "Manual": self.heaterManual,  # Parse db table amplitude column as duty cycle in percent to send to serial device
-            "Power": self.heaterPower     # Sine wave of power, Amplitude column in watts, frequency column in rad/s
+            "manual": self.heaterManual,  # Parse db table amplitude column as duty cycle in percent to send to serial device
+            "power": self.heaterPower     # Sine wave of power, Amplitude column in watts, frequency column in rad/s
             #, "Temperature": self.heaterTemp # Possible addtion of temperature control in the future, needs a PID loop to ensure temperatures are accurate. Amplitude is amplitude of temp sine, frequency in rad/s, would need to add a new column for the vertical offset.
         }
-        self.control_mode = "Manual" # Default Setting so that the test starts off with all the heaters off
+        self.control_mode = "manual" # Default Setting so that the test starts off with all the heaters off
         self.frequency = 0 #Rad/s
         self.amplitude = 0 # units depend on control mode, see self.CONTROL_OPTIONS
         self.start_time = time.time()
