@@ -5,20 +5,36 @@ import aiohttp
 import argparse
 import asyncio
 import numpy as np
+import time
 
 #########################################################################
 #SCRIPT VARIABLES
 REPO_PICO_TALKER_PATH = "control/Thermal Control/Pico_Talker/Pico_Talker.py"
+REPO_READ_DAQ_PATH = "control/Thermocouple/writeFromDAQ.py"
+REPO_GRAPH_LIVE_PATH = "control/Thermocouple/graphLive.py"
+REPO_GRAPH_FULL_PATH = "control/Thermocouple/graphFull.py"
 REPO_SERVER_PATH = "server/server.js"
 REPO_CLIENT_PATH = "client/"
 curr_path = pathlib.Path.cwd()
 
 GIT_REPO_NAME = "In_Plane_Thermal_Conductivity"
 TEST_START_ENDPOINT = "/test-start"
+END_TEST_ENDPOINT = "/test-end"
 
 PICO_TALKER_LIVE_ENDPOINT = "/script-alive"
+GRAPH_LIVE_END_POINT = "/script-alive"
+
+GRAPH_LIVE_PORT = 8123
 
 REPO_BASE_PATH = None
+
+#Process info
+PICO_TALKER_PROC = None
+GRAPH_LIVE_PROC = None
+GRAPH_FULL_PROC = None
+SERVER_PROC = None
+CLIENT_PROC = None
+READ_DAQ_PROC = None
 
 for i, parent in enumerate(reversed(curr_path.as_posix().split('/'))): #Get the base path of the repo repository so that relative paths in the repo can be used
     print(parent, i)
@@ -36,7 +52,9 @@ if REPO_BASE_PATH is None:
 ABS_PICO_TALKER_PATH = (REPO_BASE_PATH / REPO_PICO_TALKER_PATH).as_posix()
 ABS_SERVER_PATH = (REPO_BASE_PATH / REPO_SERVER_PATH).as_posix()
 ABS_CLIENT_PATH = (REPO_BASE_PATH / REPO_CLIENT_PATH).as_posix()
-
+ABS_READ_DAQ_PATH = (REPO_BASE_PATH / REPO_READ_DAQ_PATH).as_posix()
+ABS_GRAPH_LIVE_PATH = (REPO_BASE_PATH / REPO_GRAPH_LIVE_PATH).as_posix()
+ABS_GRAPH_FULL_PATH = (REPO_BASE_PATH/ REPO_GRAPH_FULL_PATH).as_posix()
 
 #########################################################################
 #AIOHTTP
@@ -47,20 +65,41 @@ async def startTestHandler(request:web.Request) -> web.StreamResponse:
         request (web.Request): request info
 
     Returns:
-        web.StreamResponse: json data from alive_info with either 200 or 404
+        web.StreamResponse: 200 if all scripts exited properly and started properly, 404 and json {process name: pid} if process didnt exit properly or json alive_info
     """
-
+    global PICO_TALKER_PROC, GRAPH_LIVE_PROC, GRAPH_FULL_PROC, READ_DAQ_PROC
     #Dictionary of processes that have an endpoint to make sure that they are running fully
     process_info = {
         "Pico_Talker": {
             "alive_url": f"http://localhost:{PICO_TALKER_NETWORK_PORT}{PICO_TALKER_LIVE_ENDPOINT}",
             "status": 0
+        },
+        "graphLive": {
+            "alive_url": f"http://localhost:{GRAPH_LIVE_PORT}{GRAPH_LIVE_END_POINT}",
+            "status": 0
         }
     }
+    # Kill Graph Full
+    if GRAPH_FULL_PROC is not None: #If graph full is a running process
+        GRAPH_FULL_PROC.terminate()
+        max_exit = 10
+        i = 0
+        err = True
+        while i<max_exit:
+            if GRAPH_FULL_PROC.poll() is None:
+                time.sleep(0.5)
+                i += 1
+            else:
+                err = False
+                break
+        
+        if err == True:
+            return web.json_response({"graphFull": GRAPH_FULL_PROC.pid}, status=404)
 
-    #Pico Talker Process
-    subprocess.Popen(PICO_TALKER_START)
-    # PUT OTHER SUBPROCESSES TO START HERE
+    #Start processes
+    PICO_TALKER_PROC = subprocess.Popen(PICO_TALKER_START)
+    READ_DAQ_PROC = subprocess.Popen(READ_DAQ_START)
+    GRAPH_LIVE_PROC = subprocess.Popen(GRAPH_LIVE_START)
 
     #Ensuring Processes started up well
     for key in process_info.keys():
@@ -95,6 +134,58 @@ async def startTestHandler(request:web.Request) -> web.StreamResponse:
         return web.json_response(alive_info, status = 404)
     else:
         return web.json_response(alive_info, status = 200)
+    
+def endTestHandler(request:web.Request) -> web.StreamResponse:
+    """Killing and starting required processes at the end of a test
+
+    Args:
+        request (web.Request): 
+
+    Returns:
+        web.StreamResponse: 200 if all processes exited properly, 404 if not and returns json of process name and PID of the process that didn't work
+    """
+    global PICO_TALKER_PROC, GRAPH_FULL_PROC, GRAPH_LIVE_PROC, READ_DAQ_PROC
+
+    #Kill processes
+    proc_kill = { #Dictionary of processes to kill
+        "Pico_Talker": {
+            "proc": PICO_TALKER_PROC,
+            "err": True
+        },
+        "Read_DAQ": {
+            "proc": READ_DAQ_PROC,
+            "err": True
+        },
+        "graphLive": {
+            "proc": GRAPH_LIVE_PROC,
+            "err": True
+        }
+    }
+    
+    max_exit = 10
+    for key in proc_kill.keys():
+        proc_kill[key]["proc"].terminate()
+        i = 0
+        while i < max_exit:
+            if proc_kill[key]["proc"].poll() is None: #If the process is still running reset the loop
+                time.sleep(0.5)
+                i = i+1
+            else:
+                proc_kill[key]["err"] = False
+                break
+
+    if True in [proc_kill[key]["err"] for key in proc_kill.keys()]: #If one of the processes didn't exit correctly, return a json file of the name of the process and its PID
+        errored_proc = {}
+        for key in proc_kill.keys():
+            if proc_kill[key]["err"] == True:
+                errored_proc[key] = proc_kill[key]["proc"].pid
+        return web.json_response(errored_proc, status=404)
+    
+    #Start Processes
+    GRAPH_FULL_PROC = subprocess.Popen(GRAPH_FULL_START)
+
+    return web.Response(status=200)
+        
 
 #########################################################################
 #MAIN
@@ -122,17 +213,24 @@ if __name__ == "__main__":
     pico_talker_arg_str = " ".join([str(i) for row in [(key, pico_talker_args[key]) for key in pico_talker_args.keys() if pico_talker_args[key] is not None] for i in row])
     
     PICO_TALKER_START = f'python "{ABS_PICO_TALKER_PATH}" {pico_talker_arg_str}'
+    READ_DAQ_START = f'python "{ABS_READ_DAQ_PATH}"'
+    GRAPH_LIVE_START = f'python "{ABS_GRAPH_LIVE_PATH}"'
+    GRAPH_FULL_START = f'python "{ABS_GRAPH_FULL_PATH}"'
 
     #Start Up Node Webserver
-    subprocess.Popen(f"node {ABS_SERVER_PATH}")
+    SERVER_PROC = subprocess.Popen(f"node {ABS_SERVER_PATH}")
     #Start Up Client
-    subprocess.Popen(f"npm start --prefix {ABS_CLIENT_PATH}")
+    CLIENT_PROC = subprocess.Popen(f"npm start --prefix {ABS_CLIENT_PATH}")
+    #Start Up Graph Full
+    GRAPH_FULL_PROC = subprocess.Popen(GRAPH_FULL_START)
+
 
     #Event Loop and setup this scripts webserver
     loop = asyncio.get_event_loop()
     app = web.Application()
     app.add_routes([
-        web.put(TEST_START_ENDPOINT, startTestHandler)
+        web.put(TEST_START_ENDPOINT, startTestHandler),
+        web.put(END_TEST_ENDPOINT, endTestHandler)
     ])
     runner = web.AppRunner(app)
     loop.run_until_complete(runner.setup())
