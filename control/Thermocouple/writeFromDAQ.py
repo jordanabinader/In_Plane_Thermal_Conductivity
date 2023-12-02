@@ -40,7 +40,7 @@ cursor.execute(f'''SELECT testId
                 LIMIT 1''')
 resultstid = cursor.fetchall()
 TEST_ID = str(resultstid[0][0])
-TABLE_NAME = "temperature_" + TEST_ID
+TABLE_NAME = "temperature_table_" + TEST_ID
 
 # Create chandle and status ready for use
 chandle = ctypes.c_int16()
