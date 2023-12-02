@@ -3,6 +3,7 @@
 # Debug File, not to be ran in production
 # Writes to a database temperature data from CSV file
 # Speed can be set to simulate live data transfer
+# Make sure tables are created as needed
 
 import sqlite3
 import pandas as pd
@@ -11,8 +12,11 @@ import time
 
 VALUES_TO_READ = 3000
 SLEEP_TIME = 1
-DATABASE_NAME = 'your_database.db'
-TABLE_NAME = "Data1"
+
+DATABASE_NAME = 'server/angstronomers.sqlite3'
+TEST_DIR_TABLE_NAME = "test_directory"
+TEST_ID = "1"
+TABLE_NAME_TC = "temperature_table_" + TEST_ID
 
 # Connect to the database
 conn = sqlite3.connect(DATABASE_NAME)
@@ -36,17 +40,17 @@ temps5 = list(df['TC5'])
 temps6 = list(df['TC6'])
 
 # Create a table
-cursor.execute(f'''CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
-                date_time TEXT DEFAULT CURRENT_TIMESTAMP,
-                relTime REAL NOT NULL,
-                temp1 REAL NOT NULL,
-                temp2 REAL NOT NULL,
-                temp3 REAL,
-                temp4 REAL,
-                temp5 REAL,
-                temp6 REAL,
-                temp7 REAL,
-                temp8 REAL)''')
+# cursor.execute(f'''CREATE TABLE IF NOT EXISTS {TABLE_NAME_TC} (
+#                 date_time TEXT DEFAULT CURRENT_TIMESTAMP,
+#                 relTime REAL NOT NULL,
+#                 temp1 REAL NOT NULL,
+#                 temp2 REAL NOT NULL,
+#                 temp3 REAL,
+#                 temp4 REAL,
+#                 temp5 REAL,
+#                 temp6 REAL,
+#                 temp7 REAL,
+#                 temp8 REAL)''')
 
 for i in range(0, len(temps1), VALUES_TO_READ):
     time.sleep(SLEEP_TIME)
@@ -59,7 +63,7 @@ for i in range(0, len(temps1), VALUES_TO_READ):
 
     data_to_insert = list(zip(date_time, time1, temp1, temp2))
 
-    cursor.executemany(f"INSERT INTO {TABLE_NAME} (date_time, relTime, temp1, temp2) VALUES (?, ?, ?, ?)",
+    cursor.executemany(f"INSERT INTO {TABLE_NAME_TC} (date_time, relTime, temp1, temp2) VALUES (?, ?, ?, ?)",
                        data_to_insert)
 
     # Commit the changes to the database
