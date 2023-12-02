@@ -17,6 +17,7 @@ This project integrates various components such as server, database, web applica
 - npm or yarn
 - SQLite3
 - Python 3.11.6
+- PicoSDK
 
 ### Installation
 1. **Clone the repository**:
@@ -73,3 +74,12 @@ The application uses the following SQLite3 database schemas:
   - `temp1` to `temp8`: Float (temperature readings for 8 different points)
 
 
+## TC08 Note
+For use with TC-08, you may have to modify library.py of picosdk so it can manually find the installed library
+
+ex. "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/picosdk/library.py"
+
+Edit the first line after def _load(self):
+
+library_path = find_library(self.name) ->
+library_path = '/Library/Frameworks/PicoSDK.framework/Libraries/libusbtc08/libusbtc08.dylib' For running on Charlie's Macbook Pro
