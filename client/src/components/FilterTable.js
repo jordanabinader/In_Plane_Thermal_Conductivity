@@ -95,13 +95,11 @@ export default function FilterTable() {
           return filter.searchTerm.toLowerCase() === '' ? true : item[filter.id].toLowerCase().includes(filter.searchTerm.toLowerCase());
         });
       } else if (filter.range) {
-        const filterId = filter.id
         console.log(filteredData)
         filteredData = filteredData.filter(item => {
           const value = parseFloat(item[filter.id]);
           const min = filter.range.min ? parseFloat(filter.range.min) : -Infinity;
           const max = filter.range.max ? parseFloat(filter.range.max) : Infinity;
-          console.log('result :',min,max)
           return value >= min && value <= max;
         });
       }

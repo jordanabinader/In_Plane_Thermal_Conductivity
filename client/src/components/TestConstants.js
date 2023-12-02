@@ -44,26 +44,37 @@ const TestConstants = () => {
       }
 
       const response = await axios.post('http://localhost:80/startTest', testSetup);
-    
+
       // Send request to controls and what's needed
 
       console.log('Test started successfully:', response.data);
-
-      timeoutId = setTimeout(() => {
-        setIsLoading(false);
-      }, 20 * 1000 * 1000);
-
+      
       // Redirect to test of testId
       const testId = response.data.testId; 
       router.push(`/test/${testId}`);
+      //timeoutId = setTimeout(() => {
+      //  setIsLoading(false);
+      //}, 20 * 1000 * 1000);
 
     } catch (error) {
       console.error('Error starting test:', error);
       // Handle errors here (e.g., showing error messages to the user)
 
+    } 
+
+    try {
+      const responseStart = await axios.put('http://localhost:3001/test-start'); //returns 200 if picotalker is up and 404 if picotalker not up or Json one key is live, error, timeout, connection refused
+      
+      //handle response 
+
+    } catch (error) {
+
+      console.error('Error starting controls:', error)
+
     } finally {
-      clearTimeout(timeoutId); // Clear the timeout if response is received early
-      setIsLoading(false); // End loading
+
+      //clearTimeout(timeoutId); // Clear the timeout if response is received early
+      //setIsLoading(false); // End loading
     }
   };
 
