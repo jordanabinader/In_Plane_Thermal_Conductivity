@@ -34,6 +34,13 @@ This project integrates various components such as server, database, web applica
   cd server
   npm install
   ```
+
+- **Start the program**
+  ```
+
+  python Startup.py
+  ```
+  
 - For the python scripts
   ```
   pip install -r requirements.txt
@@ -44,10 +51,14 @@ This project integrates various components such as server, database, web applica
 - Run the database schema setup scripts.
 
 ### Running the Application
-- **Start the program**
-  ```
-  python Startup.py
-  ```
+
+- **Start the client**:
+cd client
+npm start
+
+- **Start the server** (in a new terminal window):
+cd server
+node server.js
 
 ## Usage
 Provide instructions on how to use the application, including any available commands, features, and how users can perform key tasks.
