@@ -19,17 +19,17 @@ from multiprocessing import Process
 
 # Set from Flask Fetch - See app route TODO
 TEST_ID = "1"
-TABLE_NAME_TC = "Data" + TEST_ID
-TABLE_NAME_PARAM = "Param" + TEST_ID
+TABLE_NAME_TC = "temperature_" + TEST_ID
+TABLE_NAME_PARAM = "testSetting_" + TEST_ID
+
+# Changes Live from Database Query
+OPAMP_FREQUENCY = .002  # 1/OpAmp Period, .002 for csv
+TIMESTAMP_FRQ_CHANGE = '2000-01-01 00:00:00'
 
 # Set from Database Query
 DENSITY = 1
 SPECIFIC_HEAT = 1
 L = .72  # Distance between thermocouples CSV = .72
-
-# Changes Live from Database Query
-OPAMP_FREQUENCY = .002  # 1/OpAmp Period, .002 for csv
-TIMESTAMP_FRQ_CHANGE = '2000-01-01 00:00:00'
 
 # Constant
 UPDATE_WAIT = 50  # in ms, time between updating plot
@@ -38,6 +38,7 @@ SAMPLING_RATE = 1 / 0.01  # 1/.01 for csv, 1/0.316745311 for daq (can safely be 
 PERIODS_TO_VIEW = 2.5  # Determines how many periods of the sine curve will be graphed
 MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / OPAMP_FREQUENCY) * SAMPLING_RATE)
 DATABASE_NAME = 'your_database.db'
+TEST_DIR_TABLE_NAME = "test_directory"
 
 app = Flask(__name__)
 
@@ -102,17 +103,27 @@ def modify_doc(doc):
                           ORDER BY relTime DESC
                           LIMIT 1''')
         results2 = cursor.fetchall()
+        
+        # Get Parameters Data - Timing + Frequency
+        cursor.execute(f'''SELECT frequency, datetime
+                        FROM {TABLE_NAME_PARAM}
+                        ORDER BY datetime DESC
+                        LIMIT 1''')
+        resultsP = cursor.fetchall()
+        new_frq = resultsP[0]
+        if new_frq != OPAMP_FREQUENCY:
+            OPAMP_FREQUENCY = new_frq
+            TIMESTAMP_FRQ_CHANGE = resultsP[1]
 
-        # set OPAMP_FREQUENCY, constants from database
-        # cursor.execute(f'''SELECT time, frq, density, specificHeat, L
-        #                    FROM {TABLE_NAME_PARAM}
-        #                    ORDER BY time DESC
-        #                    LIMIT 1)
-        # results3 = cursor.fetchall()
-        # new_frq = results3[1]
-        # if new_frq != OPAMP_FREQUENCY:
-        #     OPAMP_FREQUENCY = new_frq
-        #     TIMESTAMP_FRQ_CHANGE = results3[0]
+        # Get Parameters Data - Constants TODO check if works
+        cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
+                        FROM {TEST_DIR_TABLE_NAME}
+                        WHERE testName = {TEST_ID}
+                        LIMIT 1''')
+        resultsC = cursor.fetchall()
+        DENSITY = resultsC[0]
+        SPECIFIC_HEAT = resultsC[1]
+        L = resultsC[2]
 
         # Add data
         times1 = [row[0] for row in results]
@@ -228,8 +239,14 @@ def modify_doc(doc):
 
 
 
-@app.route('/', methods=['GET'])
-def bkapp_page():
+@app.route('/<test-id>', methods=['GET'])
+def bkapp_page(test_id):
+    global TEST_ID, TABLE_NAME_PARAM, TABLE_NAME_TC
+    if test_id == "favicon.ico":
+        return
+    TEST_ID = test_id
+    TABLE_NAME_TC = "temperature_" + TEST_ID
+    TABLE_NAME_PARAM = "testSetting_" + TEST_ID
     script = server_document('http://localhost:5006/bkapplive/live')
     return render_template("embed.html", script=script, template="Flask")
 

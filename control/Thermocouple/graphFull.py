@@ -19,8 +19,8 @@ from threading import Thread
 
 # Set from Flask Fetch - See app route
 TEST_ID = "1"
-TABLE_NAME_TC = "Data" + TEST_ID
-TABLE_NAME_PARAM = "Param" + TEST_ID
+TABLE_NAME_TC = "temperature_" + TEST_ID
+TABLE_NAME_PARAM = "testSetting_" + TEST_ID
 
 # Set from Database Query into Table
 OPAMP_FREQUENCY = .002  # 1/OpAmp Period, .002 for csv
@@ -34,6 +34,7 @@ L = .72  # Distance between thermocouples
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
 SAMPLING_RATE = 1 / 0.01  # 1/.01 for csv, 1/.2 for daq (can safely be inaccurate)
 DATABASE_NAME = 'your_database.db'
+TEST_DIR_TABLE_NAME = "test_directory"
 
 app = Flask(__name__)
 
@@ -91,25 +92,26 @@ def modify_doc(doc):
     results = cursor.fetchall()
 
     # Get Parameters Data - Timing + Frequency
-    # cursor.execute(f'''SELECT {TABLE_NAME_TC}.relTime,
-    #                           {TABLE_NAME_PARAM}.time,
-    #                           {TABLE_NAME_PARAM}.frq
-    #                    FROM {TABLE_NAME_PARAM}
-    #                    JOIN {TABLE_NAME_TC} ON {TABLE_NAME_TC}.date_time = {TABLE_NAME_PARAM}.time
-    #                    GROUP BY {TABLE_NAME_PARAM}.time''')
-    # resultsP = cursor.fetchall()
-    # sourceP.data['relTime'] = [x[0] for x in resultsP]
-    # sourceP.data['timestamp'] = [x[1] for x in resultsP]
-    # sourceP.data['frq'] = [x[2] for x in resultsP]
+    cursor.execute(f'''SELECT {TABLE_NAME_TC}.relTime,
+                              {TABLE_NAME_PARAM}.datetime,
+                              {TABLE_NAME_PARAM}.frequency
+                       FROM {TABLE_NAME_PARAM}
+                       JOIN {TABLE_NAME_TC} ON {TABLE_NAME_TC}.datetime = {TABLE_NAME_PARAM}.datetime
+                       GROUP BY {TABLE_NAME_PARAM}.datetime''')
+    resultsP = cursor.fetchall()
+    sourceP.data['relTime'] = [x[0] for x in resultsP]
+    sourceP.data['timestamp'] = [x[1] for x in resultsP]
+    sourceP.data['frq'] = [x[2] for x in resultsP]
 
-    # Get Parameters Data - Constants
-    # cursor.execute(f'''SELECT density, specificHeat, L
-    #                    FROM {TABLE_NAME_PARAM}
-    #                    LIMIT 1''')
-    # resultsC = cursor.fetchall()
-    # DENSITY = resultsC[0]
-    # SPECIFIC_HEAT = resultsC[1]
-    # L = resultsC[2]
+    # Get Parameters Data - Constants TODO check if works
+    cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
+                       FROM {TEST_DIR_TABLE_NAME}
+                       WHERE testName = {TEST_ID}
+                       LIMIT 1''')
+    resultsC = cursor.fetchall()
+    DENSITY = resultsC[0]
+    SPECIFIC_HEAT = resultsC[1]
+    L = resultsC[2]
 
     # Store results, close cursor
     times1 = [x[0] for x in results]
@@ -262,8 +264,8 @@ def bkapp_page(test_id):
     if test_id == "favicon.ico":
         return
     TEST_ID = test_id
-    TABLE_NAME_TC = "Data" + TEST_ID
-    TABLE_NAME_PARAM = "Param" + TEST_ID
+    TABLE_NAME_TC = "temperature_" + TEST_ID
+    TABLE_NAME_PARAM = "testSetting_" + TEST_ID
     script = server_document('http://localhost:5006/bkapp')
     return render_template("embed.html", script=script, template="Flask")
 
