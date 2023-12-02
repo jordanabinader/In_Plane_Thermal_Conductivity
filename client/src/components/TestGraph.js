@@ -9,7 +9,9 @@ import axios from 'axios';
 
 
 const TestGraph = (testIdIn) => {
-    const testToLoad = "http://localhost:8123/" + testIdIn.toString();
+    console.log(testIdIn);
+    console.log(testIdIn.testIdIn)
+    const testToLoad = "http://localhost:8123/" + testIdIn.testIdIn.toString();
     const router = useRouter();
     const [togglePosition, setTogglePosition] = useState('left');
     const [buttonStyle, setButtonStyle] = useState({});

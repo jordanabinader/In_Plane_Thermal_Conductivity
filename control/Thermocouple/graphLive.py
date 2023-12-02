@@ -114,7 +114,7 @@ def modify_doc(doc):
         new_frq = resultsP[0][0]
         if new_frq != OPAMP_FREQUENCY:
             OPAMP_FREQUENCY = new_frq
-            TIMESTAMP_FRQ_CHANGE = resultsP[1][0]
+            TIMESTAMP_FRQ_CHANGE = resultsP[0][1]
 
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -124,8 +124,8 @@ def modify_doc(doc):
         resultsC = cursor.fetchall()
         print(resultsC)
         DENSITY = resultsC[0][0]
-        SPECIFIC_HEAT = resultsC[1][0]
-        L = resultsC[2][0]
+        SPECIFIC_HEAT = resultsC[0][1]
+        L = resultsC[0][2]
 
         # Add data
         times1 = [row[0] for row in results]
@@ -249,6 +249,8 @@ def bkapp_page(test_id):
     TEST_ID = test_id
     TABLE_NAME_TC = "temperature_table_" + TEST_ID
     TABLE_NAME_PARAM = "test_settings_" + TEST_ID
+    print(TEST_ID)
+    print(TABLE_NAME_TC)
     script = server_document('http://localhost:5006/bkapplive/live')
     return render_template("embed.html", script=script, template="Flask")
 

@@ -110,8 +110,8 @@ def modify_doc(doc):
                        LIMIT 1''')
     resultsC = cursor.fetchall()
     DENSITY = resultsC[0][0]
-    SPECIFIC_HEAT = resultsC[1][0]
-    L = resultsC[2][0]
+    SPECIFIC_HEAT = resultsC[0][1]
+    L = resultsC[0][2]
 
     # Store results, close cursor
     times1 = [x[0] for x in results]

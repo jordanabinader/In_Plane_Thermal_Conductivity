@@ -49,7 +49,10 @@ def fit_data(temps, times, TempFrequency):
 
 
 def process_data(lst, sampling_rate, temp_frequency):
-    window_size = int(min((sampling_rate // temp_frequency)*2, len(lst)))  # TODO is this better/fine as 2x period?
+    if temp_frequency != 0:
+        window_size = int(min((sampling_rate // temp_frequency)*2, len(lst)))  # TODO is this better/fine as 2x period?
+    else:
+        window_size = int(len(lst))
 
     # print(sampling_rate // temp_frequency)
     # print(len(lst)/2)
