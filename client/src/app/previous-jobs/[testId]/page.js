@@ -13,7 +13,6 @@ export default function EditPreviousJob(props) {
         <div className='bg-white'>
           <iframe
             title="Bokeh Plot"
-            //src="http://localhost:8124/1"
             src={testToLoad}
             width="100%"
             height="650"

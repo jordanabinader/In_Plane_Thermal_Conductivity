@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "IPTC Project Library")(type "KiCad")(uri "${KIPRJMOD}/IPTC Project Library.pretty")(options "")(descr ""))
+)

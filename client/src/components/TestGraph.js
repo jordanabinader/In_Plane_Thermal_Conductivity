@@ -9,6 +9,7 @@ import axios from 'axios';
 
 
 const TestGraph = (testIdIn) => {
+    const testToLoad = "http://localhost:8123/" + testId.toString();
     const router = useRouter();
     const [togglePosition, setTogglePosition] = useState('left');
     const [buttonStyle, setButtonStyle] = useState({});
@@ -83,7 +84,7 @@ const TestGraph = (testIdIn) => {
                     <div className="bg-gray-200 h-full">
                     <iframe
                         title="Bokeh Plot"
-                        src="http://localhost:8123"
+                        src={testToLoad}
                         width="100%"
                         height="100%"
                     />
