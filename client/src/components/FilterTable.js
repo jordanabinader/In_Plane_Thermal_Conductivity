@@ -40,25 +40,29 @@ const initialFilters = [
     name: 'Specific Heat',
     range: { min: '', max: '' }, 
   },
+  {
+    id: 'tcDistance',
+    name: 'Thermocouple Distance',
+    range: { min: '', max: '' }, 
+  },
 ]
 
 export default function FilterTable() {
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [filters, setFilters] = useState(initialFilters);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [originalData, setOriginalData] = useState([]);
   const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(`http://localhost:80/queryAllRows/test_directory`);
-        setData(response.data);
+        
+        setOriginalData(response.data);
+        setData(response.data)
       } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
+        setError(err.message)
       }
     };
     fetchData();
@@ -83,15 +87,15 @@ export default function FilterTable() {
   };
 
   const filterData = () => {
-    let filteredData = [...data];
+    let filteredData = [...originalData];
     filters.forEach(filter => {
       if (filter.searchTerm) {
-        console.log('filtering')
+        const filterId = filter.id
         filteredData = filteredData.filter((item) => {
-          return filter.searchTerm.toLowerCase() === '' ? item : item[filter.id].
-          toLowerCase().includes(filter.searchTerm);
+          return filter.searchTerm.toLowerCase() === '' ? true : item[filter.id].toLowerCase().includes(filter.searchTerm.toLowerCase());
         });
       } else if (filter.range) {
+        console.log(filteredData)
         filteredData = filteredData.filter(item => {
           const value = parseFloat(item[filter.id]);
           const min = filter.range.min ? parseFloat(filter.range.min) : -Infinity;
@@ -103,9 +107,6 @@ export default function FilterTable() {
 
     setData(filteredData);
   };
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="bg-white">
