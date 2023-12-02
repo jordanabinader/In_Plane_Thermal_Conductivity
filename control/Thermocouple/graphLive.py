@@ -11,7 +11,7 @@ from bokeh.models.widgets import Button, Div
 import numpy as np
 import sqlite3
 import utils as ut
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Response
 from bokeh.server.server import Server
 from tornado.ioloop import IOLoop
 from threading import Thread
@@ -256,6 +256,11 @@ def bkapp_page(test_id):
     TABLE_NAME_PARAM = "test_settings_" + TEST_ID
     script = server_document('http://localhost:5006/bkapplive/live')
     return render_template("embed.html", script=script, template="Flask")
+
+
+@app.route('/script-alive', methods=['GET'])
+def alive_check():
+    return Response(status=200)
 
 
 def bk_worker():
