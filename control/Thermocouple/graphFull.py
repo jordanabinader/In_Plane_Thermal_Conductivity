@@ -43,7 +43,7 @@ def modify_doc(doc):
     # Create plot for full data
     source = ColumnDataSource(data={'times1': [], 'times2': [],
                                     'temps1': [], 'temps2': []})
-    plot = figure(title='Full Data', width=400, height=400)
+    plot = figure(title='Full Data', width=600, height=350)
     plot.line('times1', 'temps1', source=source, line_color='blue', legend_label='TC1')
     plot.line('times2', 'temps2', source=source, line_color='red', legend_label='TC2')
 
@@ -51,7 +51,7 @@ def modify_doc(doc):
     source2 = ColumnDataSource(data={'times1': [], 'times2': [],
                                      'temps1': [], 'temps2': [],
                                      'temps1fit': [], 'temps2fit': []})
-    plot2 = figure(title='Fitted Data in Range', width=400, height=400)
+    plot2 = figure(title='Fitted Data in Range', width=600, height=350)
     plot2.line('times1', 'temps1', source=source2, line_color='blue', legend_label='TC1')
     plot2.line('times1', 'temps1fit', source=source2, line_color='green', legend_label='TC1FIT')
     plot2.line('times2', 'temps2', source=source2, line_color='red', legend_label='TC2')
@@ -123,11 +123,14 @@ def modify_doc(doc):
     conn.close()
 
     # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
-    temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
-    temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
+    # temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
+    # temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
 
+    # source.data = {'times1': times1, 'times2': times2,
+    #                'temps1': temps1_pr, 'temps2': temps2_pr}
+    
     source.data = {'times1': times1, 'times2': times2,
-                   'temps1': temps1_pr, 'temps2': temps2_pr}
+                   'temps1': temps1, 'temps2': temps2}
 
     def update_plot(attrname, old, new):
         # exceptions for boundary inputs
@@ -154,8 +157,8 @@ def modify_doc(doc):
 
         times1_plot = times1[lb_index:ub_index]
         times2_plot = times2[lb_index:ub_index]
-        temps1_plot = temps1_pr[lb_index:ub_index]
-        temps2_plot = temps2_pr[lb_index:ub_index]
+        temps1_plot = temps1[lb_index:ub_index]
+        temps2_plot = temps2[lb_index:ub_index]
         
         # exception for frequency input
         try:
@@ -169,9 +172,12 @@ def modify_doc(doc):
         
         global OPAMP_FREQUENCY
         OPAMP_FREQUENCY = using_frequency
+        
+        temps1_plot_pr = ut.process_data(temps1_plot, SAMPLING_RATE, OPAMP_FREQUENCY)
+        temps2_plot_pr = ut.process_data(temps2_plot, SAMPLING_RATE, OPAMP_FREQUENCY)
 
-        params1, adjusted_r_squared1 = ut.fit_data(temps1_plot, times1_plot, OPAMP_FREQUENCY)
-        params2, adjusted_r_squared2 = ut.fit_data(temps2_plot, times2_plot, OPAMP_FREQUENCY)
+        params1, adjusted_r_squared1 = ut.fit_data(temps1_plot_pr, times1_plot, OPAMP_FREQUENCY)
+        params2, adjusted_r_squared2 = ut.fit_data(temps2_plot_pr, times2_plot, OPAMP_FREQUENCY)
         phaseShifts = [params1[2], params2[2]]
 
         # Continue with the remaining calculations
@@ -224,7 +230,7 @@ def modify_doc(doc):
 
         # Update the ColumnDataSource data for both lines
         source2.data = {'times1': times1_plot, 'times2': times2_plot,
-                        'temps1': temps1_plot, 'temps2': temps2_plot,
+                        'temps1': temps1_plot_pr, 'temps2': temps2_plot_pr,
                         'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
         textL.text = f"L: {L}"
         textDT.text = f"Delta Time: {delta_time}"
@@ -271,9 +277,15 @@ def modify_doc(doc):
     save_button = Button(label='Save to CSV', button_type='success')
     save_button.on_click(save_to_csv)
 
-    doc.add_root(column(row(plot, column(lb_input, ub_input, frq_input), save_button, param_table),
-                        row(plot2, column(textL, textDT, textM, textN)),
-                        row(textD, textC, textR1, textR2)))
+    # doc.add_root(column(row(param_table, plot, column(save_button, lb_input, ub_input, frq_input)),
+    #                     row(plot2, column(textL, textDT, textM, textN)),
+    #                     row(textD, textC, textR1, textR2)))
+    
+    doc.add_root(row(param_table,
+                     column(plot, plot2),
+                     column(save_button, lb_input, ub_input, frq_input,
+                            textL, textDT, textM, textN,
+                            textD, textC, textR1, textR2)))
 
 
 @app.route('/<test_id>', methods=['GET'])
