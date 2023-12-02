@@ -122,7 +122,7 @@ def modify_doc(doc):
                         WHERE testId = {TEST_ID}
                         LIMIT 1''')
         resultsC = cursor.fetchall()
-        print(resultsC)
+        # print(resultsC)
         DENSITY = resultsC[0][0]
         SPECIFIC_HEAT = resultsC[0][1]
         L = resultsC[0][2]
@@ -254,8 +254,6 @@ def bkapp_page(test_id):
     TEST_ID = test_id
     TABLE_NAME_TC = "temperature_table_" + TEST_ID
     TABLE_NAME_PARAM = "test_settings_" + TEST_ID
-    print(TEST_ID)
-    print(TABLE_NAME_TC)
     script = server_document('http://localhost:5006/bkapplive/live')
     return render_template("embed.html", script=script, template="Flask")
 
