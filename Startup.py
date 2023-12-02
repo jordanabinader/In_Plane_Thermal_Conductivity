@@ -4,8 +4,9 @@ from aiohttp import web
 import aiohttp
 import argparse
 import asyncio
-import numpy as np
+import signal
 import time
+import os
 
 #########################################################################
 #SCRIPT VARIABLES
@@ -186,6 +187,15 @@ def endTestHandler(request:web.Request) -> web.StreamResponse:
 
     return web.Response(status=200)
         
+def signalGracefulExit(*args):
+    """End all the processes when the test is done to make sure that the ports close out nicely
+    """
+    global SERVER_PROC, CLIENT_PROC, GRAPH_FULL_PROC, GRAPH_LIVE_PROC, PICO_TALKER_PROC, READ_DAQ_PROC
+    procs = [SERVER_PROC, CLIENT_PROC, GRAPH_FULL_PROC, GRAPH_LIVE_PROC, PICO_TALKER_PROC, READ_DAQ_PROC]
+    for proc in procs:
+        proc.terminate()
+    os._exit(1)
+
 
 #########################################################################
 #MAIN
@@ -224,7 +234,10 @@ if __name__ == "__main__":
     #Start Up Graph Full
     GRAPH_FULL_PROC = subprocess.Popen(GRAPH_FULL_START)
 
-
+    #Signal Handler to exit all process
+    signals = (signal.SIGTERM, signal.SIGINT)
+    for s in signals:
+        signal.signal(s, signalGracefulExit)
     #Event Loop and setup this scripts webserver
     loop = asyncio.get_event_loop()
     app = web.Application()
