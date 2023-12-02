@@ -19,8 +19,8 @@ from multiprocessing import Process
 
 # Set from Flask Fetch - See app route TODO
 TEST_ID = "1"
-TABLE_NAME_TC = "temperature_" + TEST_ID
-TABLE_NAME_PARAM = "testSetting_" + TEST_ID
+TABLE_NAME_TC = "temperature_table_" + TEST_ID
+TABLE_NAME_PARAM = "test_settings_" + TEST_ID
 
 # Changes Live from Database Query
 OPAMP_FREQUENCY = .002  # 1/OpAmp Period, .002 for csv
@@ -110,10 +110,10 @@ def modify_doc(doc):
                         ORDER BY datetime DESC
                         LIMIT 1''')
         resultsP = cursor.fetchall()
-        new_frq = resultsP[0]
+        new_frq = resultsP[0][0]
         if new_frq != OPAMP_FREQUENCY:
             OPAMP_FREQUENCY = new_frq
-            TIMESTAMP_FRQ_CHANGE = resultsP[1]
+            TIMESTAMP_FRQ_CHANGE = resultsP[1][0]
 
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -121,9 +121,9 @@ def modify_doc(doc):
                         WHERE testId = {TEST_ID}
                         LIMIT 1''')
         resultsC = cursor.fetchall()
-        DENSITY = resultsC[0]
-        SPECIFIC_HEAT = resultsC[1]
-        L = resultsC[2]
+        DENSITY = resultsC[0][0]
+        SPECIFIC_HEAT = resultsC[1][0]
+        L = resultsC[2][0]
 
         # Add data
         times1 = [row[0] for row in results]
@@ -245,8 +245,8 @@ def bkapp_page(test_id):
     if test_id == "favicon.ico":
         return
     TEST_ID = test_id
-    TABLE_NAME_TC = "temperature_" + TEST_ID
-    TABLE_NAME_PARAM = "testSetting_" + TEST_ID
+    TABLE_NAME_TC = "temperature_table_" + TEST_ID
+    TABLE_NAME_PARAM = "test_settings_" + TEST_ID
     script = server_document('http://localhost:5006/bkapplive/live')
     return render_template("embed.html", script=script, template="Flask")
 

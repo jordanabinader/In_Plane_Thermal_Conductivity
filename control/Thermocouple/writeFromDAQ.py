@@ -12,7 +12,7 @@ PRINT_LOG = False
 DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
 TEST_ID = "1"  # TODO
-TABLE_NAME = "temperature_" + TEST_ID
+TABLE_NAME = "temperature_table_" + TEST_ID
 
 # Connect to the database
 conn = sqlite3.connect(DATABASE_NAME)
@@ -39,9 +39,8 @@ cursor.execute(f'''SELECT testId
                 ORDER BY testId DESC
                 LIMIT 1''')
 resultstid = cursor.fetchall()
-TEST_ID = str(resultstid[0])
+TEST_ID = str(resultstid[0][0])
 TABLE_NAME = "temperature_" + TEST_ID
-print(TABLE_NAME)
 
 # Create chandle and status ready for use
 chandle = ctypes.c_int16()
