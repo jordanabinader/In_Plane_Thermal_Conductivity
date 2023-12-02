@@ -54,7 +54,7 @@ def fit_data(temps, times, TempFrequency):
 
 def process_data(lst, sampling_rate, temp_frequency):
     if temp_frequency != 0:
-        window_size = int(min((sampling_rate // temp_frequency), len(lst)))  # TODO is this better/fine as 2x period?
+        window_size = int(min((1/(sampling_rate * temp_frequency)), len(lst)))
     else:
         window_size = int(len(lst))
 

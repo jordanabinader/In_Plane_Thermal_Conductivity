@@ -23,17 +23,18 @@ TABLE_NAME_TC = "temperature_table_" + TEST_ID
 TABLE_NAME_PARAM = "test_settings_" + TEST_ID
 
 # Set from Database Query into Table / user input
-OPAMP_FREQUENCY = .002  # 1/OpAmp Period, .002 for csv
+OPAMP_FREQUENCY = 0.000797  # 1/OpAmp Period, .002 for csv
 
 # Set from Database Query, Constants
 DENSITY = 1
 SPECIFIC_HEAT = 1
-L = .72  # Distance between thermocouples
+L = 26  # Distance between thermocouples, in mm
 
 # Constant
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
-SAMPLING_RATE = 1 / 0.01  # 1/.01 for csv, 1/0.316745311 for daq (can safely be inaccurate)
-DATABASE_NAME = 'server/angstronomers.sqlite3'
+SAMPLING_RATE = 0.316745311  # amount of time between points, .01 for csv (maybe changed, must reinvestigate)
+#DATABASE_NAME = 'server/angstronomers.sqlite3'
+DATABASE_NAME = 'angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
 
 app = Flask(__name__)
@@ -68,6 +69,9 @@ def modify_doc(doc):
     textC = Div(text="Conductivity (W/mK): ", width=150, height=50)
     textR1 = Div(text="TC1 R^2: ", width=150, height=50)
     textR2 = Div(text="TC2 R^2: ", width=150, height=50)
+    
+    # Create text to display first frequency
+    textF1 = Div(text="First Frequency Logged (Hz): ", width=400, height=25)
 
     # Create table to display changing test parameters
     dataP = dict(
@@ -81,7 +85,7 @@ def modify_doc(doc):
         TableColumn(field='relTime', title='Graphed Time'),
         TableColumn(field='frq', title='Frequency')
     ]
-    param_table = DataTable(source=sourceP, columns=columns, width=400, height=280)
+    param_table = DataTable(source=sourceP, columns=columns, width=400, height=500)
 
     # Connect to the database, create a cursor
     conn = sqlite3.connect(DATABASE_NAME)
@@ -98,12 +102,21 @@ def modify_doc(doc):
                               {TABLE_NAME_PARAM}.datetime,
                               {TABLE_NAME_PARAM}.frequency
                        FROM {TABLE_NAME_PARAM}
-                       JOIN {TABLE_NAME_TC} ON {TABLE_NAME_TC}.datetime = {TABLE_NAME_PARAM}.datetime
+                       JOIN {TABLE_NAME_TC} ON strftime('%Y-%m-%d %H:%M:%S', {TABLE_NAME_TC}.datetime) 
+                                             = strftime('%Y-%m-%d %H:%M:%S', {TABLE_NAME_PARAM}.datetime)
                        GROUP BY {TABLE_NAME_PARAM}.datetime''')
     resultsP = cursor.fetchall()
-    sourceP.data['relTime'] = [x[0] for x in resultsP]
-    sourceP.data['timestamp'] = [x[1] for x in resultsP]
-    sourceP.data['frq'] = [x[2] for x in resultsP]
+    sourceP.data['relTime'], sourceP.data['timestamp'], sourceP.data['frq'] = zip(*resultsP)
+
+    
+    # Get First Frequency Used
+    cursor.execute(f'''SELECT frequency
+                       FROM {TABLE_NAME_PARAM}
+                       ORDER BY datetime ASC
+                       LIMIT 1''')
+    resultsF1 = cursor.fetchall()
+    if resultsF1:
+        textF1.text = f"First Frequency Logged (Hz): {resultsF1[0][0]}"
 
     # Get Parameters Data - Constants TODO check if works
     cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -123,6 +136,15 @@ def modify_doc(doc):
 
     cursor.close()
     conn.close()
+    
+    # Calculate sampling rate
+    if len(times1) < 2:
+        raise ValueError("List must contain at least two values for calculating differences.")
+    # Calculate the sum of differences
+    diff_sum = sum(abs(times1[i] - times1[i - 1]) for i in range(1, len(times1)))
+    # Calculate the average difference
+    global SAMPLING_RATE
+    SAMPLING_RATE = diff_sum / (len(times1) - 1)
 
     # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
     # temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
@@ -247,13 +269,13 @@ def modify_doc(doc):
         textR2.text = f"TC1 R^2: {adjusted_r_squared2}"
 
     # Create input fields for upper and lower bounds
-    lb_input = TextInput(value="1000.0", title="Enter Lower Bound:")
-    ub_input = TextInput(value="2000.0", title="Enter Upper Bound")
+    lb_input = TextInput(value="1000", title="Enter Lower Bound:")
+    ub_input = TextInput(value="2000", title="Enter Upper Bound")
     lb_input.on_change("value", update_plot)
     ub_input.on_change("value", update_plot)
     
     # Create input field for frequency
-    frq_input = TextInput(value=".01", title="Enter Frequency (Hz):")
+    frq_input = TextInput(value=".005", title="Enter Frequency (Hz):")
     frq_input.on_change("value", update_plot)
     
     def save_to_csv():
@@ -286,7 +308,7 @@ def modify_doc(doc):
     #                     row(plot2, column(textL, textDT, textM, textN)),
     #                     row(textD, textC, textR1, textR2)))
     
-    doc.add_root(row(param_table,
+    doc.add_root(row(column(textF1, param_table),
                      column(plot, plot2),
                      column(save_button, lb_input, ub_input, frq_input,
                             textL, textDT, textM, textN,
