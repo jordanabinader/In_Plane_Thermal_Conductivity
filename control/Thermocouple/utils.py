@@ -15,7 +15,11 @@ def fit_data(temps, times, TempFrequency):
     y_data = temps
 
     if len(x_data) != len(y_data) or len(x_data) == 0 or len(y_data) == 0:
-        raise ValueError("x_data and y_data must have the same non-zero length")
+        raise ValueError("x_data and y_data must have the same length")
+    if len(x_data) == 0:
+        raise ValueError("x_data cannot have 0 length")
+    if len(y_data) == 0:
+        raise ValueError("y_data cannot have 0 length")
 
     # initial guess
     p0 = [np.mean(y_data), np.max(y_data) - np.mean(y_data), np.pi]
@@ -57,10 +61,10 @@ def process_data(lst, sampling_rate, temp_frequency):
     # print(sampling_rate // temp_frequency)
     # print(len(lst)/2)
     # print(window_size)
-
-    column_series = pd.Series(lst)
-    moving_avg = column_series.rolling(window=window_size, min_periods=1, center=True).mean()
-    lst = list(column_series - moving_avg)
+    if (len(lst) > 5):
+        column_series = pd.Series(lst)
+        moving_avg = column_series.rolling(window=window_size, min_periods=1, center=True).mean()
+        lst = list(column_series - moving_avg)
 
     return lst
 

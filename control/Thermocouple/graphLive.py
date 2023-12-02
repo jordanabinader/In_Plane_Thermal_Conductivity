@@ -148,7 +148,10 @@ def modify_doc(doc):
         # Continue with the remaining calculations
         M = 2 * params1[1]
         N = 2 * params2[1]
-        period = 1 / OPAMP_FREQUENCY
+        if OPAMP_FREQUENCY != 0:
+            period = 1 / OPAMP_FREQUENCY
+        else:
+            period = 1
 
         if M < 0:
             phaseShifts[0] = phaseShifts[0] + period / 2
