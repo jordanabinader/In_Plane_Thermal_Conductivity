@@ -37,7 +37,7 @@ TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
 SAMPLING_RATE = 1 / 0.01  # 1/.01 for csv, 1/0.316745311 for daq (can safely be inaccurate)
 PERIODS_TO_VIEW = 2.5  # Determines how many periods of the sine curve will be graphed
 MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / OPAMP_FREQUENCY) * SAMPLING_RATE)
-DATABASE_NAME = 'angstronomers.sqlite3'
+DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
 
 app = Flask(__name__)
@@ -89,9 +89,10 @@ def modify_doc(doc):
 
     def update_data():
         # Get Main TC Data
+        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L
         cursor.execute(f'''SELECT relTime, temp1, temp2
                           FROM {TABLE_NAME_TC}
-                          WHERE date_time > ?
+                          WHERE datetime > ?
                           ORDER BY relTime DESC
                           LIMIT ?''', (TIMESTAMP_FRQ_CHANGE,MAX_GRAPH_BUFFER,))
         results = cursor.fetchall()
@@ -121,6 +122,7 @@ def modify_doc(doc):
                         WHERE testId = {TEST_ID}
                         LIMIT 1''')
         resultsC = cursor.fetchall()
+        print(resultsC)
         DENSITY = resultsC[0][0]
         SPECIFIC_HEAT = resultsC[1][0]
         L = resultsC[2][0]
@@ -239,7 +241,7 @@ def modify_doc(doc):
 
 
 
-@app.route('/<test-id>', methods=['GET'])
+@app.route('/<test_id>', methods=['GET'])
 def bkapp_page(test_id):
     global TEST_ID, TABLE_NAME_PARAM, TABLE_NAME_TC
     if test_id == "favicon.ico":
