@@ -27,8 +27,14 @@ This project integrates various components such as server, database, web applica
 - For the server:
   ```
   cd server
-  npm install
+  node server.js
   ```
+  =======
+- **Start the program**
+  ```
+  python Startup.py
+  ```
+>>>>>>> main
 
 3. **Setting up the database**:
 - Navigate to the server directory.
