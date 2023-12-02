@@ -71,16 +71,16 @@ def modify_doc(doc):
     plot2.legend.location = "bottom_left"
 
     # Create text to display Diffusivity, Conductivity, R^2 Values
-    textD = Div(text="Diffusivity: ", width=200, height=25)
-    textC = Div(text="Conductivity: ", width=200, height=25)
-    textR1 = Div(text="TC1 R^2: ", width=200, height=25)
-    textR2 = Div(text="TC2 R^2: ", width=200, height=25)
-    text3 = Div(text="TC3: ", width=130, height=25)
-    text4 = Div(text="TC4: ", width=130, height=25)
-    text5 = Div(text="TC5: ", width=130, height=25)
-    text6 = Div(text="TC6: ", width=130, height=25)
-    text7 = Div(text="TC7: ", width=130, height=25)
-    text8 = Div(text="TC8: ", width=130, height=25)
+    textD = Div(text="Diffusivity (mm^2/s): ", width=250, height=25)
+    textC = Div(text="Conductivity (W/mK): ", width=250, height=25)
+    textR1 = Div(text="TC1 R^2: ", width=250, height=25)
+    textR2 = Div(text="TC2 R^2: ", width=250, height=25)
+    text3 = Div(text="TC3: ", width=250, height=25)
+    text4 = Div(text="TC4: ", width=250, height=25)
+    text5 = Div(text="TC5: ", width=250, height=25)
+    text6 = Div(text="TC6: ", width=250, height=25)
+    text7 = Div(text="TC7: ", width=250, height=25)
+    text8 = Div(text="TC8: ", width=250, height=25)
 
     # Connect to the database, create a cursor
     conn = sqlite3.connect(DATABASE_NAME)
@@ -89,7 +89,7 @@ def modify_doc(doc):
 
     def update_data():
         # Get Main TC Data
-        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L
+        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L, MAX_GRAPH_BUFFER
         cursor.execute(f'''SELECT relTime, temp1, temp2
                           FROM {TABLE_NAME_TC}
                           WHERE datetime > ?
@@ -115,6 +115,8 @@ def modify_doc(doc):
         if new_frq != OPAMP_FREQUENCY:
             OPAMP_FREQUENCY = new_frq
             TIMESTAMP_FRQ_CHANGE = resultsP[0][1]
+            if OPAMP_FREQUENCY != 0:
+                MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / OPAMP_FREQUENCY) * SAMPLING_RATE)
 
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -187,8 +189,11 @@ def modify_doc(doc):
         phaseDifference = phaseDifference % period
         delta_time = phaseDifference
 
-        diffusivity = L ** 2 / (2 * delta_time * np.log(M / N))
-        conductivity = diffusivity * DENSITY * SPECIFIC_HEAT
+        diffusivity = L ** 2 / (2 * delta_time * np.log(M / N))  # in mm^2/s
+        diffusivity_for_calc = diffusivity * 0.000001  # in m^2/s
+        density_for_calc = DENSITY * 1000  # in kg/m^3
+        # Specific Heat in J/kgC (or Kelvin, its the same)
+        conductivity = diffusivity_for_calc * density_for_calc * SPECIFIC_HEAT  # in W/m·K
 
         a1, b1, c1 = params1
         y_fitted1 = a1 + b1 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (times1 + c1))
@@ -202,8 +207,8 @@ def modify_doc(doc):
                        'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
         source2.data = {'times1': times1, 'times2': times2,
                         'temps1': temps1, 'temps2': temps2}
-        textD.text = f"Diffusivity: {round(diffusivity, 6)}"
-        textC.text = f"Conductivity: {round(conductivity, 6)}"
+        textD.text = f"Diffusivity (mm^2/s): {round(diffusivity, 6)}"
+        textC.text = f"Conductivity (W/mK): {round(conductivity, 6)}"
         textR1.text = f"TC1 R^2: {round(adjusted_r_squared1, 6)}"
         textR2.text = f"TC2 R^2: {round(adjusted_r_squared2, 6)}"
         if results2:
@@ -242,7 +247,7 @@ def modify_doc(doc):
     doc.add_root(column(row(start_button, stop_button),
                         row(plot, plot2),
                         row(textD, textC, textR1, textR2),
-                        row(text3, text4, text5, text6, text7, text8)))
+                        row(text3, text4, text5, text6)))
 
 
 

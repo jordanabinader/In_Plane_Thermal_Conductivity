@@ -58,12 +58,12 @@ def modify_doc(doc):
     plot2.line('times2', 'temps2fit', source=source2, line_color='brown', legend_label='TC2FIT')
 
     # Create text to display Diffusivity, Conductivity, R^2 Values
-    textL = Div(text="Length: ", width=150, height=50)
+    textL = Div(text="Length (mm): ", width=150, height=50)
     textDT = Div(text="Delta Time: ", width=150, height=50)
     textM = Div(text="M: ", width=150, height=50)
     textN = Div(text="N: ", width=150, height=50)
-    textD = Div(text="Diffusivity: ", width=150, height=50)
-    textC = Div(text="Conductivity: ", width=150, height=50)
+    textD = Div(text="Diffusivity (mm^2/s): ", width=150, height=50)
+    textC = Div(text="Conductivity (W/mK): ", width=150, height=50)
     textR1 = Div(text="TC1 R^2: ", width=150, height=50)
     textR2 = Div(text="TC2 R^2: ", width=150, height=50)
 
@@ -218,9 +218,12 @@ def modify_doc(doc):
         # so the phase difference is just the difference of the individual phase shifts
         phaseDifference = phaseDifference % period
         delta_time = phaseDifference
-
-        diffusivity = L ** 2 / (2 * delta_time * np.log(M / N))
-        conductivity = diffusivity * DENSITY * SPECIFIC_HEAT
+        
+        diffusivity = L ** 2 / (2 * delta_time * np.log(M / N))  # in mm^2/s
+        diffusivity_for_calc = diffusivity * 0.000001  # in m^2/s
+        density_for_calc = DENSITY * 1000  # in kg/m^3
+        # Specific Heat in J/kgC (or Kelvin, its the same)
+        conductivity = diffusivity_for_calc * density_for_calc * SPECIFIC_HEAT  # in W/m·K
 
         a1, b1, c1 = params1
         y_fitted1 = a1 + b1 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (times1_plot + c1))
@@ -236,8 +239,8 @@ def modify_doc(doc):
         textDT.text = f"Delta Time: {delta_time}"
         textM.text = f"M: {M}"
         textN.text = f"N: {N}"
-        textD.text = f"Diffusivity: {diffusivity}"
-        textC.text = f"Conductivity: {conductivity}"
+        textD.text = f"Diffusivity (mm^2/s): {diffusivity}"
+        textC.text = f"Conductivity (W/mK): {conductivity}"
         textR1.text = f"TC1 R^2: {adjusted_r_squared1}"
         textR2.text = f"TC1 R^2: {adjusted_r_squared2}"
 
