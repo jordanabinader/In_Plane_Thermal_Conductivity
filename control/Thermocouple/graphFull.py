@@ -46,6 +46,7 @@ def modify_doc(doc):
     plot = figure(title='Full Data', width=600, height=350)
     plot.line('times1', 'temps1', source=source, line_color='blue', legend_label='TC1')
     plot.line('times2', 'temps2', source=source, line_color='red', legend_label='TC2')
+    plot.legend.location = "top_left"
 
     # Create plot for fit data in bounds
     source2 = ColumnDataSource(data={'times1': [], 'times2': [],
@@ -56,6 +57,7 @@ def modify_doc(doc):
     plot2.line('times1', 'temps1fit', source=source2, line_color='green', legend_label='TC1FIT')
     plot2.line('times2', 'temps2', source=source2, line_color='red', legend_label='TC2')
     plot2.line('times2', 'temps2fit', source=source2, line_color='brown', legend_label='TC2FIT')
+    plot2.legend.location = "top_left"
 
     # Create text to display Diffusivity, Conductivity, R^2 Values
     textL = Div(text="Length (mm): ", width=150, height=50)
