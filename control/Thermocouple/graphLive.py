@@ -136,8 +136,10 @@ def modify_doc(doc):
         times2 = [x+TC_TIME_SHIFT for x in times1]
 
         # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
-        temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
-        temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
+        # temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY) TODO READD
+        # temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
+        temps1_pr = temps1
+        temps2_pr = temps2
 
         params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, times1, OPAMP_FREQUENCY)
         params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, times2, OPAMP_FREQUENCY)
