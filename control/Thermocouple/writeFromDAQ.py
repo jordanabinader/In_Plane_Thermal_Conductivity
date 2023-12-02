@@ -71,7 +71,7 @@ units = tc08.USBTC08_UNITS["USBTC08_UNITS_CENTIGRADE"]
 
 print(status)
 
-input("Press Enter to continue...")
+# input("Press Enter to continue...")
 
 print("Going!")
 
