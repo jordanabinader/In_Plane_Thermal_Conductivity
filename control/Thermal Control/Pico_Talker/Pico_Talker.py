@@ -10,6 +10,7 @@ from datetime import datetime
 import math
 from functools import partial
 from aiohttp import web
+import aiohttp_cors
 import signal
 import os
 from typing import Tuple, List
@@ -190,6 +191,21 @@ class SerialComm(asyncio.Protocol):
         """
         # Webserver
         app = web.Application()
+
+        app.router.add_put(TEST_SETTING_ENDPOINT, self.testSettingUpdateHook)
+        app.router.add_put(END_TEST_ENDPOINT, self.endTestHook)
+        app.router.add_get(SCRIPT_ALIVE_ENDPOINT, self.aliveHook)
+
+        cors = aiohttp_cors.setup(app, defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*"
+            )
+        })
+        for route in list(app.router.routes()):
+            cors.add(route)
+
         app.add_routes([
             web.put(TEST_SETTING_ENDPOINT, self.testSettingUpdateHook),
             web.put(END_TEST_ENDPOINT, self.endTestHook),
