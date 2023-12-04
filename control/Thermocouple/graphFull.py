@@ -5,7 +5,7 @@
 
 from bokeh.embed import server_document
 from bokeh.plotting import figure, curdoc, output_file, save
-from bokeh.models import ColumnDataSource, TextInput, DataTable, TableColumn
+from bokeh.models import ColumnDataSource, TextInput, DataTable, TableColumn, Checkbox
 from bokeh.layouts import column, row
 from bokeh.models.widgets import Div, Button
 import numpy as np
@@ -16,6 +16,7 @@ from flask import Flask, render_template
 from bokeh.server.server import Server
 from tornado.ioloop import IOLoop
 from threading import Thread
+from datetime import datetime
 
 # Set from Flask Fetch - See app route
 TEST_ID = "1"
@@ -32,10 +33,10 @@ L = 26  # Distance between thermocouples, in mm
 
 # Constant
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
-SAMPLING_RATE = 0.316745311  # amount of time between points, .01 for csv (maybe changed, must reinvestigate)
-#DATABASE_NAME = 'server/angstronomers.sqlite3'
-DATABASE_NAME = 'angstronomers.sqlite3'
+SAMPLING_RATE = 0.3959535  # amount of time between points, .01 for csv (maybe changed, must reinvestigate)
+DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
+FIT_MY_DATA = True
 
 app = Flask(__name__)
 
@@ -69,9 +70,6 @@ def modify_doc(doc):
     textC = Div(text="Conductivity (W/mK): ", width=150, height=50)
     textR1 = Div(text="TC1 R^2: ", width=150, height=50)
     textR2 = Div(text="TC2 R^2: ", width=150, height=50)
-    
-    # Create text to display first frequency
-    textF1 = Div(text="First Frequency Logged (Hz): ", width=400, height=25)
 
     # Create table to display changing test parameters
     dataP = dict(
@@ -96,6 +94,17 @@ def modify_doc(doc):
                       FROM {TABLE_NAME_TC}
                       ORDER BY relTime ASC''')
     results = cursor.fetchall()
+    
+    # Get First Frequency Used
+    cursor.execute(f'''SELECT frequency
+                       FROM {TABLE_NAME_PARAM}
+                       ORDER BY datetime ASC
+                       LIMIT 1''')
+    resultsF1 = cursor.fetchall()
+    if resultsF1:
+        sourceP.data['frq'] = [resultsF1[0][0]]
+        sourceP.data['timestamp'] = ["0"]
+        sourceP.data['relTime'] = ["0"]
 
     # Get Parameters Data - Timing + Frequency
     cursor.execute(f'''SELECT {TABLE_NAME_TC}.relTime,
@@ -106,17 +115,11 @@ def modify_doc(doc):
                                              = strftime('%Y-%m-%d %H:%M:%S', {TABLE_NAME_PARAM}.datetime)
                        GROUP BY {TABLE_NAME_PARAM}.datetime''')
     resultsP = cursor.fetchall()
-    sourceP.data['relTime'], sourceP.data['timestamp'], sourceP.data['frq'] = zip(*resultsP)
-
-    
-    # Get First Frequency Used
-    cursor.execute(f'''SELECT frequency
-                       FROM {TABLE_NAME_PARAM}
-                       ORDER BY datetime ASC
-                       LIMIT 1''')
-    resultsF1 = cursor.fetchall()
-    if resultsF1:
-        textF1.text = f"First Frequency Logged (Hz): {resultsF1[0][0]}"
+    if resultsP:
+        relTime, timestamp, frq = zip(*resultsP)
+        sourceP.data['relTime'] += list(relTime)
+        sourceP.data['timestamp'] += list(timestamp)
+        sourceP.data['frq'] += list(frq)
 
     # Get Parameters Data - Constants TODO check if works
     cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -145,13 +148,6 @@ def modify_doc(doc):
     # Calculate the average difference
     global SAMPLING_RATE
     SAMPLING_RATE = diff_sum / (len(times1) - 1)
-
-    # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
-    # temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
-    # temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
-
-    # source.data = {'times1': times1, 'times2': times2,
-    #                'temps1': temps1_pr, 'temps2': temps2_pr}
     
     source.data = {'times1': times1, 'times2': times2,
                    'temps1': temps1, 'temps2': temps2}
@@ -197,8 +193,12 @@ def modify_doc(doc):
         global OPAMP_FREQUENCY
         OPAMP_FREQUENCY = using_frequency
         
-        temps1_plot_pr = ut.process_data(temps1_plot, SAMPLING_RATE, OPAMP_FREQUENCY)
-        temps2_plot_pr = ut.process_data(temps2_plot, SAMPLING_RATE, OPAMP_FREQUENCY)
+        if FIT_MY_DATA:
+            temps1_plot_pr = ut.process_data(temps1_plot, SAMPLING_RATE, OPAMP_FREQUENCY)
+            temps2_plot_pr = ut.process_data(temps2_plot, SAMPLING_RATE, OPAMP_FREQUENCY)
+        else:
+            temps1_plot_pr = temps1_plot
+            temps2_plot_pr = temps2_plot
 
         params1, adjusted_r_squared1 = ut.fit_data(temps1_plot_pr, times1_plot, OPAMP_FREQUENCY)
         params2, adjusted_r_squared2 = ut.fit_data(temps2_plot_pr, times2_plot, OPAMP_FREQUENCY)
@@ -217,25 +217,26 @@ def modify_doc(doc):
             phaseShifts[1] = phaseShifts[1] + period / 2
             N = -N
 
-            # Reduce first phase shift to the very first multiple to the right of t=0
-        if phaseShifts[0] > 0:
-            while phaseShifts[0] > 0:
-                phaseShifts[0] = phaseShifts[0] - period
-        else:
-            while phaseShifts[0] < -period:
-                phaseShifts[0] = phaseShifts[0] + period
+        # --- Commented Out ---
+        # # Reduce first phase shift to the very first multiple to the right of t=0
+        # if phaseShifts[0] > 0:
+        #     while phaseShifts[0] > 0:
+        #         phaseShifts[0] = phaseShifts[0] - period
+        # else:
+        #     while phaseShifts[0] < -period:
+        #         phaseShifts[0] = phaseShifts[0] + period
 
-        # Reduce 2nd phase shift to the very first multiple to the right of t=0
-        if phaseShifts[1] > 0:
-            while phaseShifts[1] > 0:
-                phaseShifts[1] = phaseShifts[1] - period
-        else:
-            while phaseShifts[1] < -period:
-                phaseShifts[1] = phaseShifts[1] + period
+        # # Reduce 2nd phase shift to the very first multiple to the right of t=0
+        # if phaseShifts[1] > 0:
+        #     while phaseShifts[1] > 0:
+        #         phaseShifts[1] = phaseShifts[1] - period
+        # else:
+        #     while phaseShifts[1] < -period:
+        #         phaseShifts[1] = phaseShifts[1] + period
 
-        # Add a phase to ensure 2 is after 1 in time
-        if phaseShifts[1] > phaseShifts[0]:
-            phaseShifts[1] = phaseShifts[1] - period
+        # # Add a phase to ensure 2 is after 1 in time
+        # if phaseShifts[1] > phaseShifts[0]:
+        #     phaseShifts[1] = phaseShifts[1] - period
 
         phaseDifference = abs(phaseShifts[1] - phaseShifts[0])  # From wave mechanics -
         # same frequency but different additive constants
@@ -286,7 +287,7 @@ def modify_doc(doc):
         cursor.execute(f"SELECT * FROM {TABLE_NAME_TC}")
         rows = cursor.fetchall()
         # Define the CSV file path
-        csv_file_path_TC = 'TC_DATA_' + TEST_ID + '.csv'
+        csv_file_path_TC = 'TC_DATA_' + TEST_ID + str(datetime.now()) + '.csv'
         # Write the data to a CSV file
         with open(csv_file_path_TC, 'w', newline='') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -303,12 +304,17 @@ def modify_doc(doc):
     # Create save button
     save_button = Button(label='Save to CSV', button_type='success')
     save_button.on_click(save_to_csv)
-
-    # doc.add_root(column(row(param_table, plot, column(save_button, lb_input, ub_input, frq_input)),
-    #                     row(plot2, column(textL, textDT, textM, textN)),
-    #                     row(textD, textC, textR1, textR2)))
     
-    doc.add_root(row(column(textF1, param_table),
+    # switch graphing modes
+    def switch_fitting_graph(attr, old_value, new_value):
+        global FIT_MY_DATA
+        FIT_MY_DATA = not FIT_MY_DATA
+    
+    checkbox = Checkbox(label="Remove Rolling Average", active=FIT_MY_DATA)
+    checkbox.on_change('active', switch_fitting_graph)
+    checkbox.on_change('active', update_plot)
+    
+    doc.add_root(row(column(checkbox, param_table),
                      column(plot, plot2),
                      column(save_button, lb_input, ub_input, frq_input,
                             textL, textDT, textM, textN,
