@@ -63,7 +63,7 @@ const TestGraph = (testIdIn) => {
     const handleSubmitChanges = async (formData) => {
         handleCloseModal();
         try {
-            const response = await axios.post(`http://localhost:80/changeTestSetting/${testIdIn.testIdIn}`, formData, testIdIn);
+            const response = await axios.post(`http://localhost:2999/changeTestSetting/${testIdIn.testIdIn}`, formData, testIdIn);
             console.log(response.data);
         
           } catch (error) {

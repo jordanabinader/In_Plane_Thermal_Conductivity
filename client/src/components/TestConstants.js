@@ -5,6 +5,7 @@ import InputField from './InputField';
 import { My_Soul } from 'next/font/google';
 import Modal from './Modal';
 import axios from 'axios';
+import Loader from './Loader'
 
 const TestConstants = () => {
 
@@ -31,11 +32,12 @@ const TestConstants = () => {
 
   const handleSubmit = async (testSetup) => {
 
-    let timeoutId;
+    let testId;
 
     try {
 
       setIsLoading(true);
+
       let dataToSend;
       if (testSetup instanceof FormData) {
         dataToSend = Object.fromEntries(testSetup.entries());
@@ -43,39 +45,41 @@ const TestConstants = () => {
         dataToSend = testSetup; 
       }
 
-      const response = await axios.post('http://localhost:80/startTest', testSetup);
+      const response = await axios.post('http://localhost:2999/startTest', testSetup);
 
       // Send request to controls and what's needed
 
       console.log('Test started successfully:', response.data);
       
       // Redirect to test of testId
-      const testId = response.data.testId; 
-      router.push(`/test/${testId}`);
-      //timeoutId = setTimeout(() => {
-      //  setIsLoading(false);
-      //}, 20 * 1000 * 1000);
+      testId = response.data.testId; 
 
     } catch (error) {
       console.error('Error starting test:', error);
-      // Handle errors here (e.g., showing error messages to the user)
-
+      setIsLoading(false)
+      setIsModalOpen(false)
+      return;
     } 
 
     try {
+
       const responseStart = await axios.put('http://localhost:3001/test-start'); //returns 200 if picotalker is up and 404 if picotalker not up or Json one key is live, error, timeout, connection refused
       
-      //handle response 
+      if (responseStart.status === 200) {
+        setIsLoading(false);
+        router.push(`/test/${testId}`);
+      } else {
+        console.error('Error starting controls: Unexpected response status', responseStart);
+      }
 
     } catch (error) {
 
       console.error('Error starting controls:', error)
+      setIsLoading(false)
+      setIsModalOpen(false)
 
-    } finally {
-
-      //clearTimeout(timeoutId); // Clear the timeout if response is received early
-      //setIsLoading(false); // End loading
-    }
+    } 
+    
   };
 
   const handleOpenModal = () => {
@@ -85,9 +89,13 @@ const TestConstants = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   }
+
+  if (!isLoading) {
+    return <Loader />
+  }
+
   return (
     <form className='bg-gray-100'>
-      {isLoading ? <div>Loading...</div> : null}
       <div className="mx-auto grid max-w-2xl gap-x-8 gap-y-16 px-4 py-2 sm:px-6 sm:py-20 lg:max-w-7xl lg:grid-cols-2 lg:px-8">
         <div className='flex justify-center items-center'>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">

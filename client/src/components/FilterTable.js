@@ -57,12 +57,12 @@ export default function FilterTable() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:80/queryAllRows/test_directory`);
+        const response = await axios.get(`http://localhost:2999/queryAllRows/test_directory`);
         
         setOriginalData(response.data);
         setData(response.data)
       } catch (err) {
-        setError(err.message)
+        console.log(err.message)
       }
     };
     fetchData();

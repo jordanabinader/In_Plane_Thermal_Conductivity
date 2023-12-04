@@ -5,7 +5,7 @@ import axios from 'axios';
 
 async function queryRowsByTestId(tableName, testId) {
   try {
-    const response = await axios.get(`http://localhost:80/queryRowsByTestId/${tableName}/${testId}`);
+    const response = await axios.get(`http://localhost:2999/queryRowsByTestId/${tableName}/${testId}`);
     console.log('Data retrieved successfully:', response.data);
     return response.data;
   } catch (error) {
