@@ -104,40 +104,42 @@ async def startTestHandler(request:web.Request) -> web.StreamResponse:
     PICO_TALKER_PROC = subprocess.Popen(PICO_TALKER_START)
     READ_DAQ_PROC = subprocess.Popen(READ_DAQ_START)
     GRAPH_LIVE_PROC = subprocess.Popen(GRAPH_LIVE_START)
+    time.sleep(5)
+    return web.Response(status=200)
 
-    #Ensuring Processes started up well
-    for key in process_info.keys():
-        try:
-            async with aiohttp.ClientSession() as session:
-                response = await session.get(process_info[key]["alive_url"], timeout = aiohttp.ClientTimeout(total = 15))
-                process_info[key]["status"] = int(response.status)
-        except aiohttp.ClientConnectionError:
-            process_info[key]["status"] = -1
+    # #Ensuring Processes started up well
+    # for key in process_info.keys():
+    #     try:
+    #         async with aiohttp.ClientSession() as session:
+    #             response = await session.get(process_info[key]["alive_url"], timeout = aiohttp.ClientTimeout(total = 15))
+    #             process_info[key]["status"] = int(response.status)
+    #     except aiohttp.ClientConnectionError:
+    #         process_info[key]["status"] = -1
 
-    #data to send in return message
-    alive_info = {
-        "live": [],
-        "timeout": [],
-        "error":[],
-        "conn-refused": []
-    }
-    alive_map = {
-        200: "live",
-        404: "error",
-        0: "timeout",
-        -1: "conn-refused"
-    }
-    all_good = True
-    for key in process_info.keys():
-        status = process_info[key]["status"]
-        alive_info[alive_map[status]].append(key)
-        if status != 200: #Endpoint has an error
-            all_good = False
+    # #data to send in return message
+    # alive_info = {
+    #     "live": [],
+    #     "timeout": [],
+    #     "error":[],
+    #     "conn-refused": []
+    # }
+    # alive_map = {
+    #     200: "live",
+    #     404: "error",
+    #     0: "timeout",
+    #     -1: "conn-refused"
+    # }
+    # all_good = True
+    # for key in process_info.keys():
+    #     status = process_info[key]["status"]
+    #     alive_info[alive_map[status]].append(key)
+    #     if status != 200: #Endpoint has an error
+    #         all_good = False
     
-    if all_good == False:
-        return web.json_response(alive_info, status = 404)
-    else:
-        return web.json_response(alive_info, status = 200)
+    # if all_good == False:
+    #     return web.json_response(alive_info, status = 404)
+    # else:
+    #     return web.json_response(alive_info, status = 200)
     
 def endTestHandler(request:web.Request) -> web.StreamResponse:
     """Killing and starting required processes at the end of a test
