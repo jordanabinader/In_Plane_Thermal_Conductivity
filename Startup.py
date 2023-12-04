@@ -171,9 +171,11 @@ def endTestHandler(request:web.Request) -> web.StreamResponse:
     max_exit = 10
     for key in proc_kill.keys():
         proc_kill[key]["proc"].terminate()
+        print(f"Terminated {key}")
         i = 0
         while i < max_exit:
             if proc_kill[key]["proc"].poll() is None: #If the process is still running reset the loop
+                print(f"{key} not shutting down")
                 time.sleep(0.5)
                 i = i+1
             else:
