@@ -23,20 +23,21 @@ TABLE_NAME_TC = "temperature_table_" + TEST_ID
 TABLE_NAME_PARAM = "test_settings_" + TEST_ID
 
 # Changes Live from Database Query
-OPAMP_FREQUENCY = .002  # 1/OpAmp Period, .002 for csv
+OPAMP_FREQUENCY = .000797  # 1/OpAmp Period, .002 for csv
 TIMESTAMP_FRQ_CHANGE = '2000-01-01 00:00:00'
 
 # Set from Database Query
 DENSITY = 1
 SPECIFIC_HEAT = 1
-L = .72  # Distance between thermocouples CSV = .72
+L = 26  # Distance between thermocouples, CSV = .72
 
 # Constant
-UPDATE_WAIT = 50  # in ms, time between updating plot
+UPDATE_WAIT = 1000  # in ms, time between updating plot
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
-SAMPLING_RATE = 1 / 0.01  # 1/.01 for csv, 1/0.316745311 for daq (can safely be inaccurate)
+SAMPLING_RATE = 0.3959535  # amount of time between points, .01 for csv (maybe changed, must reinvestigate)
 PERIODS_TO_VIEW = 2.5  # Determines how many periods of the sine curve will be graphed
-MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / OPAMP_FREQUENCY) * SAMPLING_RATE)
+MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+
 DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
 
@@ -111,12 +112,13 @@ def modify_doc(doc):
                         ORDER BY datetime DESC
                         LIMIT 1''')
         resultsP = cursor.fetchall()
-        new_frq = resultsP[0][0]
+        #new_frq = resultsP[0][0] TODO
+        new_frq = .000797
         if new_frq != OPAMP_FREQUENCY:
             OPAMP_FREQUENCY = new_frq
             TIMESTAMP_FRQ_CHANGE = resultsP[0][1]
             if OPAMP_FREQUENCY != 0:
-                MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / OPAMP_FREQUENCY) * SAMPLING_RATE)
+                MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / OPAMP_FREQUENCY * SAMPLING_RATE))
 
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -124,7 +126,6 @@ def modify_doc(doc):
                         WHERE testId = {TEST_ID}
                         LIMIT 1''')
         resultsC = cursor.fetchall()
-        # print(resultsC)
         DENSITY = resultsC[0][0]
         SPECIFIC_HEAT = resultsC[0][1]
         L = resultsC[0][2]
@@ -140,8 +141,6 @@ def modify_doc(doc):
         # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
         temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
         temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
-        # temps1_pr = temps1
-        # temps2_pr = temps2
 
         params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, times1, OPAMP_FREQUENCY)
         params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, times2, OPAMP_FREQUENCY)
@@ -163,29 +162,29 @@ def modify_doc(doc):
             phaseShifts[1] = phaseShifts[1] + period / 2
             N = -N
 
-            # Reduce first phase shift to the very first multiple to the right of t=0
-        if phaseShifts[0] > 0:
-            while phaseShifts[0] > 0:
-                phaseShifts[0] = phaseShifts[0] - period
-        else:
-            while phaseShifts[0] < -period:
-                phaseShifts[0] = phaseShifts[0] + period
+        # ---Commented out, not sure if needed---
+        # # Reduce first phase shift to the very first multiple to the right of t=0
+        # if phaseShifts[0] > 0:
+        #     while phaseShifts[0] > 0:
+        #         phaseShifts[0] = phaseShifts[0] - period
+        # else:
+        #     while phaseShifts[0] < -period:
+        #         phaseShifts[0] = phaseShifts[0] + period
 
-        # Reduce 2nd phase shift to the very first multiple to the right of t=0
-        if phaseShifts[1] > 0:
-            while phaseShifts[1] > 0:
-                phaseShifts[1] = phaseShifts[1] - period
-        else:
-            while phaseShifts[1] < -period:
-                phaseShifts[1] = phaseShifts[1] + period
+        # # Reduce 2nd phase shift to the very first multiple to the right of t=0
+        # if phaseShifts[1] > 0:
+        #     while phaseShifts[1] > 0:
+        #         phaseShifts[1] = phaseShifts[1] - period
+        # else:
+        #     while phaseShifts[1] < -period:
+        #         phaseShifts[1] = phaseShifts[1] + period
 
-        # Add a phase to ensure 2 is after 1 in time
-        if phaseShifts[1] > phaseShifts[0]:
-            phaseShifts[1] = phaseShifts[1] - period
+        # # Add a phase to ensure 2 is after 1 in time
+        # if phaseShifts[1] > phaseShifts[0]:
+        #     phaseShifts[1] = phaseShifts[1] - period
 
-        phaseDifference = abs(phaseShifts[1] - phaseShifts[0])  # From wave mechanics -
-        # same frequency but different additive constants
-        # so the phase difference is just the difference of the individual phase shifts
+        phaseDifference = abs(phaseShifts[1] - phaseShifts[0])  # From wave mechanics - same frequency but different additive constants 
+                                                                # so the phase difference is just the difference of the individual phase shifts
         phaseDifference = phaseDifference % period
         delta_time = phaseDifference
 

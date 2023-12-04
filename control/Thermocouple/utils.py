@@ -14,7 +14,7 @@ def fit_data(temps, times, TempFrequency):
 
     y_data = temps
 
-    if len(x_data) != len(y_data) or len(x_data) == 0 or len(y_data) == 0:
+    if len(x_data) != len(y_data):
         raise ValueError("x_data and y_data must have the same length")
     if len(x_data) == 0:
         raise ValueError("x_data cannot have 0 length")
