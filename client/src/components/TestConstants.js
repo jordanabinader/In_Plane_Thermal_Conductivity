@@ -90,7 +90,7 @@ const TestConstants = () => {
     setIsModalOpen(false);
   }
 
-  if (!isLoading) {
+  if (isLoading) {
     return <Loader />
   }
 

@@ -1,20 +1,20 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const ScrollToTest = () => {
+  const router = useRouter();
 
   function handleScroll() {
-    if (window.location.pathname !== '/') {
-        // Navigate to the root with a hash
-        window.location.href = '/#scrollToBottom';
-    } else {
-        // If already on the root page, scroll to bottom
-        window.scroll({
-            top: document.body.offsetHeight,
-            left: 0, 
-            behavior: 'smooth',
-        });
-    }
+    router.push('/');
+
+    setTimeout(() => {
+      window.scroll({
+        top: document.body.offsetHeight,
+        left: 0,
+        behavior: 'smooth'
+      });
+    }, 500); 
   }
 
   return (

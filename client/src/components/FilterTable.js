@@ -88,24 +88,36 @@ export default function FilterTable() {
 
   const filterData = () => {
     let filteredData = [...originalData];
+
     filters.forEach(filter => {
       if (filter.searchTerm) {
-        const filterId = filter.id
         filteredData = filteredData.filter((item) => {
           return filter.searchTerm.toLowerCase() === '' ? true : item[filter.id].toLowerCase().includes(filter.searchTerm.toLowerCase());
         });
-      } else if (filter.range) {
-        console.log(filteredData)
+      } 
+      if (filter.range) {
         filteredData = filteredData.filter(item => {
+          // Check if the value is empty or null, and if so, do not filter it out
+          if (item[filter.id] === null || item[filter.id] === '') {
+            return true;
+          }
+      
           const value = parseFloat(item[filter.id]);
-          const min = filter.range.min ? parseFloat(filter.range.min) : -Infinity;
-          const max = filter.range.max ? parseFloat(filter.range.max) : Infinity;
+          // Handle cases where parseFloat returns NaN
+          if (isNaN(value)) {
+            return true;
+          }
+      
+          const min = filter.range.min !== '' ? parseFloat(filter.range.min) : -Infinity;
+          const max = filter.range.max !== '' ? parseFloat(filter.range.max) : Infinity;
+      
           return value >= min && value <= max;
         });
       }
     });
-
-    setData(filteredData);
+    if (filterData.lenth !== 0) {
+      setData(filteredData);
+    } 
   };
 
   return (
