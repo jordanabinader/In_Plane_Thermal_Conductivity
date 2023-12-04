@@ -244,7 +244,6 @@ if __name__ == "__main__":
     for s in signals:
         signal.signal(s, signalGracefulExit)
     #Event Loop and setup this scripts webserver
-    loop = asyncio.get_event_loop()
     app = web.Application()
 
     app.router.add_put(TEST_START_ENDPOINT, startTestHandler)
@@ -260,8 +259,10 @@ if __name__ == "__main__":
     for route in list(app.router.routes()):
         cors.add(route)
 
+    loop = asyncio.get_event_loop()
     runner = web.AppRunner(app)
     loop.run_until_complete(runner.setup())
     site = web.TCPSite(runner, 'localhost', port = STARTUP_PORT)
+    loop = asyncio.get_event_loop()
     asyncio.ensure_future(site.start())
     loop.run_forever()
