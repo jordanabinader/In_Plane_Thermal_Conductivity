@@ -33,7 +33,7 @@ const TestGraph = (testIdIn) => {
 
     const handleTestStop = async () => {
         try {
-            const response = await axios.put('http://localhost:3001/test-end');
+            const response = await axios.put('http://localhost:3002/test-end');
             console.log('Test stopped successfully:', response.data);
             router.push(`/previous-jobs`);
         } catch (error) {
