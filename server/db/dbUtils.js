@@ -74,7 +74,7 @@ async function startTest(form) {
     if (typeof form.material !== 'string' || form.material.trim() === '') {
       throw new Error('Invalid material: must be a non-empty string');
     }
-    if (typeof form.tcDistance !== 'number' || form.tcDistance === null) {
+    if (typeof form.tcDistance !== 'number' || form.tcDistance === 0) {
       throw new Error('Invalid thermocouple distance: must be a number and non-empty');
     }
 
