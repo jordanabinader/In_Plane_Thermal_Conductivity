@@ -543,13 +543,15 @@ if __name__ == "__main__":
         Serial_Helper.terminalChooseSerialDevice()
 
     # Separate loop required to properly initialize the database before moving on to the rest of the code.
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     db = asyncio.ensure_future(connectDatabase(database))
     loop.run_until_complete(db)
     db = db.result()
 
     # New eventloop that runs forever to handle the bulk of this script
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
     #Add signal handler tasks
     signals = (signal.SIGTERM, signal.SIGINT)
