@@ -221,17 +221,21 @@ if __name__ == "__main__":
         "--baud": PCB_BAUD_RATE
     }
 
-    pico_talker_arg_str = " ".join([str(i) for row in [(key, pico_talker_args[key]) for key in pico_talker_args.keys() if pico_talker_args[key] is not None] for i in row])
+    pico_talker_args = [str(i) for row in [(key, pico_talker_args[key]) for key in pico_talker_args.keys() if pico_talker_args[key] is not None] for i in row]
     
-    PICO_TALKER_START = f'python "{ABS_PICO_TALKER_PATH}" {pico_talker_arg_str}'
-    READ_DAQ_START = f'python "{ABS_READ_DAQ_PATH}"'
-    GRAPH_LIVE_START = f'python "{ABS_GRAPH_LIVE_PATH}"'
-    GRAPH_FULL_START = f'python "{ABS_GRAPH_FULL_PATH}"'
+    PICO_TALKER_START = ["python", ABS_PICO_TALKER_PATH].extend(pico_talker_args)
+    READ_DAQ_START = ["python", {ABS_READ_DAQ_PATH}]
+    GRAPH_LIVE_START = ["python", {ABS_GRAPH_LIVE_PATH}]
+    GRAPH_FULL_START = ["python", {ABS_GRAPH_FULL_PATH}]
+    NODE_SERVER_START = ["node", {ABS_SERVER_PATH}]
+    NODE_CLIENT_START = ["npm", "start", "--prefix", ABS_CLIENT_PATH]
+    UNBUILT_NODE_CLIENT_START = ["npm", "run", "dev", "--prefix", ABS_CLIENT_PATH]
+
 
     #Start Up Node Webserver
-    SERVER_PROC = subprocess.Popen(f"node {ABS_SERVER_PATH}")
+    SERVER_PROC = subprocess.Popen(NODE_SERVER_START)
     #Start Up Client
-    CLIENT_PROC = subprocess.Popen(f"npm start --prefix {ABS_CLIENT_PATH}")
+    CLIENT_PROC = subprocess.Popen(UNBUILT_NODE_CLIENT_START)
     #Start Up Graph Full
     GRAPH_FULL_PROC = subprocess.Popen(GRAPH_FULL_START)
 
