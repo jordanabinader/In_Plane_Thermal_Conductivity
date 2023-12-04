@@ -12,6 +12,7 @@ import numpy as np
 import sqlite3
 import utils as ut
 from flask import Flask, render_template, request, Response
+from flask_cors import CORS
 from bokeh.server.server import Server
 from tornado.ioloop import IOLoop
 from threading import Thread
@@ -42,6 +43,7 @@ DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
 
 app = Flask(__name__)
+CORS(app)
 
 
 def modify_doc(doc):
