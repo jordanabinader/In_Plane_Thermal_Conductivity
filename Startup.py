@@ -17,6 +17,7 @@ REPO_GRAPH_LIVE_PATH = "control/Thermocouple/graphLive.py"
 REPO_GRAPH_FULL_PATH = "control/Thermocouple/graphFull.py"
 REPO_SERVER_PATH = "server/server.js"
 REPO_CLIENT_PATH = "client/"
+REPO_VENV_PY_PATH = "iptc_venv/bin/python3.11"
 curr_path = pathlib.Path.cwd()
 
 GIT_REPO_NAME = "In_Plane_Thermal_Conductivity"
@@ -57,6 +58,7 @@ ABS_CLIENT_PATH = (REPO_BASE_PATH / REPO_CLIENT_PATH).as_posix()
 ABS_READ_DAQ_PATH = (REPO_BASE_PATH / REPO_READ_DAQ_PATH).as_posix()
 ABS_GRAPH_LIVE_PATH = (REPO_BASE_PATH / REPO_GRAPH_LIVE_PATH).as_posix()
 ABS_GRAPH_FULL_PATH = (REPO_BASE_PATH/ REPO_GRAPH_FULL_PATH).as_posix()
+ABS_VENV_PY_PATH = (REPO_BASE_PATH/REPO_VENV_PY_PATH).as_posix()
 
 #########################################################################
 #AIOHTTP
@@ -223,10 +225,10 @@ if __name__ == "__main__":
 
     pico_talker_args = [str(i) for row in [(key, pico_talker_args[key]) for key in pico_talker_args.keys() if pico_talker_args[key] is not None] for i in row]
     
-    PICO_TALKER_START = ["python3.11", ABS_PICO_TALKER_PATH].extend(pico_talker_args)
-    READ_DAQ_START = ["python3.11", ABS_READ_DAQ_PATH]
-    GRAPH_LIVE_START = ["python3.11", ABS_GRAPH_LIVE_PATH]
-    GRAPH_FULL_START = ["python3.11", ABS_GRAPH_FULL_PATH]
+    PICO_TALKER_START = [ABS_VENV_PY_PATH, ABS_PICO_TALKER_PATH]+pico_talker_args
+    READ_DAQ_START = [ABS_VENV_PY_PATH, ABS_READ_DAQ_PATH]
+    GRAPH_LIVE_START = [ABS_VENV_PY_PATH, ABS_GRAPH_LIVE_PATH]
+    GRAPH_FULL_START = [ABS_VENV_PY_PATH, ABS_GRAPH_FULL_PATH]
     NODE_SERVER_START = ["node", ABS_SERVER_PATH]
     NODE_CLIENT_START = ["npm", "start", "--prefix", ABS_CLIENT_PATH]
     UNBUILT_NODE_CLIENT_START = ["npm", "run", "dev", "--prefix", ABS_CLIENT_PATH]
@@ -259,12 +261,4 @@ if __name__ == "__main__":
     for route in list(app.router.routes()):
         cors.add(route)
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    runner = web.AppRunner(app)
-    loop.run_until_complete(runner.setup())
-    site = web.TCPSite(runner, 'localhost', port = STARTUP_PORT)
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    asyncio.ensure_future(site.start())
-    loop.run_forever()
+    web.run_app(app, host="localhost", port=STARTUP_PORT)
