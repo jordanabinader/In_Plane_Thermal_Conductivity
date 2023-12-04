@@ -223,10 +223,10 @@ if __name__ == "__main__":
 
     pico_talker_args = [str(i) for row in [(key, pico_talker_args[key]) for key in pico_talker_args.keys() if pico_talker_args[key] is not None] for i in row]
     
-    PICO_TALKER_START = ["python", ABS_PICO_TALKER_PATH].extend(pico_talker_args)
-    READ_DAQ_START = ["python", ABS_READ_DAQ_PATH]
-    GRAPH_LIVE_START = ["python", ABS_GRAPH_LIVE_PATH]
-    GRAPH_FULL_START = ["python", ABS_GRAPH_FULL_PATH]
+    PICO_TALKER_START = ["python3.11", ABS_PICO_TALKER_PATH].extend(pico_talker_args)
+    READ_DAQ_START = ["python3.11", ABS_READ_DAQ_PATH]
+    GRAPH_LIVE_START = ["python3.11", ABS_GRAPH_LIVE_PATH]
+    GRAPH_FULL_START = ["python3.11", ABS_GRAPH_FULL_PATH]
     NODE_SERVER_START = ["node", ABS_SERVER_PATH]
     NODE_CLIENT_START = ["npm", "start", "--prefix", ABS_CLIENT_PATH]
     UNBUILT_NODE_CLIENT_START = ["npm", "run", "dev", "--prefix", ABS_CLIENT_PATH]
