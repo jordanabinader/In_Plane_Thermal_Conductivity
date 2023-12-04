@@ -11,28 +11,30 @@ const TestConstants = () => {
 
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [testSetup, setTestSetup] = useState({
     testName: '',
     material: '',
     density: '1',
     specificHeatCapacity: '1',
-    tcDistance: '',
+    tcDistance: 0,
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const updatedValue = name === 'tcDistance' ? Number(value) : value;
     setTestSetup(prevState => ({
       ...prevState,
-      [name]: value
+      [name]: updatedValue
     }));
   };
 
   const handleSubmit = async (testSetup) => {
 
     let testId;
+    let errorMessageIn = '';
 
     try {
 
@@ -46,20 +48,16 @@ const TestConstants = () => {
       }
 
       const response = await axios.post('http://localhost:2999/startTest', testSetup);
-
-      // Send request to controls and what's needed
-
       console.log('Test started successfully:', response.data);
-      
-      // Redirect to test of testId
       testId = response.data.testId; 
-
-    } catch (error) {
-      console.error('Error starting test:', error);
-      setIsLoading(false)
-      setIsModalOpen(false)
-      return;
-    } 
+      } catch (error) {
+        console.error('Error starting test:', error);
+        errorMessageIn = 'Error starting test: ' + error.message; // Store the error message
+        setIsLoading(false);
+        setIsModalOpen(false);
+        setErrorMessage(errorMessage); // Display the error message in UI
+        return;
+      } 
 
     try {
 

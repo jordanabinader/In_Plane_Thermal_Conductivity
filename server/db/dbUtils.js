@@ -66,7 +66,18 @@ async function testEndActive(insertId) {
 }
 
 async function startTest(form) {
-  
+
+    // Tester to check if testName, material are strings and thermocouple is not an int, and none are empty
+    if (typeof form.testName !== 'string' || form.testName.trim() === '') {
+      throw new Error('Invalid testName: must be a non-empty string');
+    }
+    if (typeof form.material !== 'string' || form.material.trim() === '') {
+      throw new Error('Invalid material: must be a non-empty string');
+    }
+    if (typeof form.tcDistance !== 'number' || form.tcDistance === null) {
+      throw new Error('Invalid thermocouple distance: must be a number and non-empty');
+    }
+
   try {
     console.log('StartTest');
     console.log(form);
