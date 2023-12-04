@@ -1,16 +1,15 @@
 'use client';
 import React, {useState} from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
+import Modal from './Modal';
 
 const itemsPerPage = 6;
 
 const TableComponent = ({ data, handleDelete}) => {
 
-  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -28,6 +27,14 @@ const TableComponent = ({ data, handleDelete}) => {
   const goToNextPage = (event) => {
     setCurrentPage((prevCurrentPage) => Math.min(prevCurrentPage + 1, totalPages));
   };
+
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  }
 
   return (
     <div className="relative overflow-x-auto sm:rounded-lg"> 
@@ -81,7 +88,21 @@ const TableComponent = ({ data, handleDelete}) => {
               <td className="px-6 py-4">
               
                 <a href={'/previous-jobs/' + row.testId} className="font-medium text-red-600 hover:underline" >Edit</a>
-                <a href="#" onClick={(event) => handleDelete(row.testId, event)} className="font-medium text-red-600 hover:underline ml-2">Delete</a>
+                <a href="#" 
+                  onClick={handleOpenModal} 
+                  className="font-medium text-red-600 hover:underline ml-2">
+                  Delete
+                </a>
+                {isModalOpen && (
+                <Modal 
+                  action="Delete Test"
+                  onCancel={handleCloseModal}
+                  onSubmit={(event) => {
+                    handleDelete(row.testId, event);
+                    handleCloseModal();
+                  }} 
+                />                
+                )}
               </td>
             </tr>
           ))}
