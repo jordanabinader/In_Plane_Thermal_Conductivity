@@ -70,6 +70,16 @@ app.put('/test-end/:insertId', async (req, res) => {
   }
 });
 
+app.delete('/deleteTest/:testId', async (req, res) => {
+  const testId = req.params.testId;
+  try {
+    await dbFunctions.deleteTestByTestId(testId);
+    res.status(200).json({ message: `Test with testId ${testId} successfully deleted` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const PORT = 2999;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

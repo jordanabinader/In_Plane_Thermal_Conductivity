@@ -27,10 +27,20 @@ async function queryRowsByTestId(tableName, testId) {
 }
 
 // Function to delete a table
-async function deleteTable(tableName) {
+async function deleteTestByTestId(testId) {
   try {
-    await knex.schema.dropTableIfExists(tableName);
+    // Delete the row from the main test directory table
+    await knex(testDirectoryTableName)
+      .where('testId', testId)
+      .del();
+
+    // Drop related tables
+    await knex.schema.dropTableIfExists(`${powerTableName}_${testId}`);
+    await knex.schema.dropTableIfExists(`${testSettingTableName}_${testId}`);
+    await knex.schema.dropTableIfExists(`${temperatureTableName}_${testId}`);
+
   } catch (error) {
+    console.error(`Error occurred while deleting test with testId ${testId}:`, error.message);
     throw error;
   }
 }
@@ -177,8 +187,8 @@ async function startTest(form) {
 module.exports = {
   queryAllRows,
   queryRowsByTestId,
-  deleteTable,
   startTest,
   changeTestSetting,
-  testEndActive
+  testEndActive,
+  deleteTestByTestId
 };

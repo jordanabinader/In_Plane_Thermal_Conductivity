@@ -103,9 +103,9 @@ const TestConstants = () => {
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-2">
           <div className="border-l border-gray-300 px-14">
             {!isCompliant && (
-              <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <strong class="font-bold">Wrong Input Types! </strong>
-                <span class="block sm:inline">{errorMessage}</span>
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong className="font-bold">Wrong Input Types! </strong>
+                <span className="block sm:inline">{errorMessage}</span>
             </div>
             )}
             <InputField

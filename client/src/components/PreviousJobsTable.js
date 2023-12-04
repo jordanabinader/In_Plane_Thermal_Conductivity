@@ -1,13 +1,14 @@
 'use client';
 import React, {useState} from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 
-// TODO: EDIT LINK LOGIC
 const itemsPerPage = 6;
 
-const TableComponent = ({ data }) => {
+const TableComponent = ({ data, handleDelete}) => {
 
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const totalPages = Math.ceil(data.length / itemsPerPage);
@@ -80,7 +81,7 @@ const TableComponent = ({ data }) => {
               <td className="px-6 py-4">
               
                 <a href={'/previous-jobs/' + row.testId} className="font-medium text-red-600 hover:underline" >Edit</a>
-                <a href="#" className="font-medium text-red-600 hover:underline ml-2">Delete</a>
+                <a href="#" onClick={(event) => handleDelete(row.testId, event)} className="font-medium text-red-600 hover:underline ml-2">Delete</a>
               </td>
             </tr>
           ))}
