@@ -2,6 +2,7 @@ import subprocess
 import pathlib
 from aiohttp import web
 import aiohttp
+import aiohttp_cors
 import argparse
 import asyncio
 import signal
@@ -241,10 +242,20 @@ if __name__ == "__main__":
     #Event Loop and setup this scripts webserver
     loop = asyncio.get_event_loop()
     app = web.Application()
-    app.add_routes([
-        web.put(TEST_START_ENDPOINT, startTestHandler),
-        web.put(END_TEST_ENDPOINT, endTestHandler)
-    ])
+
+    app.router.add_put(TEST_START_ENDPOINT, startTestHandler)
+    app.router.add_put(END_TEST_ENDPOINT, endTestHandler)
+
+    cors = aiohttp_cors.setup(app, defaults={
+        "*": aiohttp_cors.ResourceOptions(
+            allow_credentials=True,
+            expose_headers="*",
+            allow_headers="*"
+        )
+    })
+    for route in list(app.router.routes()):
+        cors.add(route)
+
     runner = web.AppRunner(app)
     loop.run_until_complete(runner.setup())
     site = web.TCPSite(runner, 'localhost', port = STARTUP_PORT)
