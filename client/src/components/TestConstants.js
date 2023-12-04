@@ -62,7 +62,7 @@ const TestConstants = () => {
 
       setIsLoading(true);
 
-      const responseStart = await axios.put('http://localhost:3001/test-start'); //returns 200 if picotalker is up and 404 if picotalker not up or Json one key is live, error, timeout, connection refused
+      const responseStart = await axios.put('http://localhost:3002/test-start'); //returns 200 if picotalker is up and 404 if picotalker not up or Json one key is live, error, timeout, connection refused
       
       if (responseStart.status === 200) {
         setIsLoading(false);
