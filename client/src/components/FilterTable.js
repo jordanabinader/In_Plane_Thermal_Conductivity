@@ -54,17 +54,17 @@ export default function FilterTable() {
   const [originalData, setOriginalData] = useState([]);
   const [data, setData] = useState([]);
 
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:2999/queryAllRows/test_directory`);
+      setOriginalData(response.data);
+      setData(response.data)
+    } catch (err) {
+      console.log(err.message)
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`http://localhost:2999/queryAllRows/test_directory`);
-        
-        setOriginalData(response.data);
-        setData(response.data)
-      } catch (err) {
-        console.log(err.message)
-      }
-    };
     fetchData();
     }, []); 
 
@@ -118,6 +118,21 @@ export default function FilterTable() {
     if (filterData.lenth !== 0) {
       setData(filteredData);
     } 
+  };
+
+  const handleDelete = async (testId, event) => {
+    event.preventDefault();
+    try {
+      const response = await axios.delete(`http://localhost:2999/deleteTest/${testId}`);
+      console.log(response)
+      if (response.status === 200) {
+        fetchData()
+        console.log('Test successfully deleted');
+      }
+    } catch (error) {
+      // Handle error here (e.g., showing an error message)
+      console.error('Error deleting test:', error.message);
+    }
   };
 
   return (
@@ -395,7 +410,7 @@ export default function FilterTable() {
               </form>
 
               {/* Product grid */}
-              <PreviousJobsTable data={data}/>         
+              <PreviousJobsTable data={data} handleDelete={handleDelete}/>         
             </div>
           </section>
         </main>
