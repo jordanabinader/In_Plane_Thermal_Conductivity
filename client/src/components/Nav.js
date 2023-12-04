@@ -4,15 +4,6 @@ import React, { useEffect } from 'react';
 import ScrollToTest from './ScrollToTest';
 
 export default function NavBar() {
-    useEffect(() => {
-        if (window.location.hash === '#scrollToBottom') {
-          window.scroll({
-            top: document.body.offsetHeight,
-            left: 0, 
-            behavior: 'smooth',
-          });
-        }
-      }, []);
       
     return (
         <div className="min-h-full">

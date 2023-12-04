@@ -37,7 +37,7 @@ async function deleteTable(tableName) {
 
 async function changeTestSetting(form, insertId) {
   try {
-    console.log(form)
+
     changedSetting = await knex(`${testSettingTableName}_${insertId}`).insert({
       datetime: new Date().toISOString().replace('T', ' ').replace('Z', ''),
       controlMode: 'manual',
@@ -51,6 +51,17 @@ async function changeTestSetting(form, insertId) {
     }
   } catch (error) {
     throw error;
+  }
+}
+
+async function testEndActive(insertId) {
+  try {
+    await knex({testDirectoryTableName})
+    .where({ testID: insertId })
+    .update({ active: 'False' });
+  } catch (error) {
+    console.error('Error in stop active update function:', error);
+    throw new Error(`Failed to change active status for test ID ${insertId}: ${error.message}`);
   }
 }
 
@@ -158,4 +169,5 @@ module.exports = {
   deleteTable,
   startTest,
   changeTestSetting,
+  testEndActive
 };

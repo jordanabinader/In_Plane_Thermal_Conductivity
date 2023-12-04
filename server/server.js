@@ -59,6 +59,17 @@ app.post('/changeTestSetting/:insertId', async (req, res) => {
   }
 });
 
+// Route to update the end test
+app.put('/test-end/:insertId', async (req, res) => {
+  try {
+    const insertId = req.params.insertId;
+    await dbFunctions.testEndActive(insertId);
+    res.status(200).send(`Test with ID ${insertId} has been successfully updated.`);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
 const PORT = 2999;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

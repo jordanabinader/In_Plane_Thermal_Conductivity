@@ -9,8 +9,6 @@ import axios from 'axios';
 
 
 const TestGraph = (testIdIn) => {
-    console.log(testIdIn);
-    console.log(testIdIn.testIdIn)
     const testToLoad = "http://localhost:8123/" + testIdIn.testIdIn.toString();
     const router = useRouter();
     const [togglePosition, setTogglePosition] = useState('left');
@@ -41,6 +39,14 @@ const TestGraph = (testIdIn) => {
         } catch (error) {
             console.error('Error stopping test:', error);
         }
+
+        try {
+            const responseEnd = await axios.put('http://localhost:2999/test-end/${testIdIn.testIdIn}', testIdIn);
+            console.log('Active State changed successfully:', responseEnd.data);
+        } catch (error) {
+            console.error('Error stopping test:', error);
+        }
+        
     };
 
     const handleOpenModal = () => {
@@ -69,7 +75,7 @@ const TestGraph = (testIdIn) => {
           } catch (error) {
             console.error("Error updating test setting:", error.response);
             throw error;
-          }
+          } 
 
           try {
             const response = await axios.put('http://localhost:3001/test-setting-update');
@@ -77,7 +83,7 @@ const TestGraph = (testIdIn) => {
         } catch (error) {
             console.error('Error changing test:', error);
         }
-        };
+    };
 
     return (
         <div className='bg-white h-screen'>
