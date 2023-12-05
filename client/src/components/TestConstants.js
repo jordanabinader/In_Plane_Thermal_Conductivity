@@ -68,7 +68,7 @@ const TestConstants = () => {
         router.push(`/test/${testId}`);
         setTimeout(() => {
           setIsLoading(false);
-        }, 300);
+        }, 500);
       } else {
         console.error('Error starting controls: Unexpected response status', responseStart);
       }
