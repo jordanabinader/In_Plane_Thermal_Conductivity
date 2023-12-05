@@ -5,7 +5,7 @@
 
 from bokeh.embed import server_document
 from bokeh.plotting import figure, curdoc, output_file, save
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, BoxAnnotation
 from bokeh.layouts import column, row, layout
 from bokeh.models.widgets import Button, Div
 import numpy as np
@@ -37,7 +37,8 @@ UPDATE_WAIT = 1000  # in ms, time between updating plot
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
 SAMPLING_RATE = 0.3959535  # amount of time between points, .01 for csv (maybe changed, must reinvestigate)
 PERIODS_TO_VIEW = 5  # Determines how many periods of the sine curve will be graphed
-MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+FITTED_MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+LIVE_MAX_GRAPH_BUFFER = 8000*SAMPLING_RATE #For the live plot as recorded plot, display at most 8000 seconds of data
 
 DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
@@ -64,12 +65,15 @@ def modify_doc(doc):
 
     # Create plot for temp data as read
     source2 = ColumnDataSource(data={'times1': [], 'times2': [],
-                                     'temps1': [], 'temps2': []})
+                                     'temps1': [], 'temps2': [],
+                                     'live_start':[]})
     plot2 = figure(title='Live Plot As Recorded', width=500, height=300)
     plot2.toolbar.logo = None
     plot2.toolbar_location = None
     plot2.line('times1', 'temps1', source=source2, line_color='blue', legend_label='TC1')
     plot2.line('times2', 'temps2', source=source2, line_color='red', legend_label='TC2')
+    live_box = BoxAnnotation(left = "live_start", source = source2, fill_alpha = 0.2, fill_color = "gray")
+    plot2.add_layout(live_box)
     plot2.legend.label_text_font_size = "6pt"
     plot2.legend.location = "bottom_left"
 
@@ -92,12 +96,12 @@ def modify_doc(doc):
 
     def update_data():
         # Get Main TC Data
-        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L, MAX_GRAPH_BUFFER
+        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L, FITTED_MAX_GRAPH_BUFFER, LIVE_MAX_GRAPH_BUFFER
         cursor.execute(f'''SELECT relTime, temp1, temp2
                           FROM {TABLE_NAME_TC}
                           WHERE datetime > ?
                           ORDER BY relTime DESC
-                          LIMIT ?''', (TIMESTAMP_FRQ_CHANGE,MAX_GRAPH_BUFFER,))
+                          LIMIT ?''', (TIMESTAMP_FRQ_CHANGE,LIVE_MAX_GRAPH_BUFFER,))
         results = cursor.fetchall()
 
         # Get Other TC Data
@@ -119,7 +123,7 @@ def modify_doc(doc):
             OPAMP_FREQUENCY = new_frq
             TIMESTAMP_FRQ_CHANGE = resultsP[0][1]
             if OPAMP_FREQUENCY != 0:
-                MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+                FITTED_MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
 
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -132,12 +136,22 @@ def modify_doc(doc):
         L = resultsC[0][2]
 
         # Add data
-        times1 = [row[0] for row in results]
-        temps1 = [row[1] for row in results]
-        temps2 = [row[2] for row in results]
+        times_live1 = [row[0] for row in results]
+        temps_live1 = [row[1] for row in results]
+        temps_live2 = [row[2] for row in results]
+        if len(times_live1) > FITTED_MAX_GRAPH_BUFFER:
+            times1 = times_live1[-FITTED_MAX_GRAPH_BUFFER:]
+            temps1 = temps_live1[-FITTED_MAX_GRAPH_BUFFER:]
+            temps2 = temps_live2[-FITTED_MAX_GRAPH_BUFFER:]
+        else:
+            times1 = times_live1
+            temps1 = temps_live1
+            temps2 = temps_live2
+        
 
         # Fix timing for temps2
         times2 = [x+TC_TIME_SHIFT for x in times1]
+        times_live2 = [x+TC_TIME_SHIFT for x in times_live2]
 
         # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
         temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
@@ -205,8 +219,9 @@ def modify_doc(doc):
         source.data = {'times1': times1, 'times2': times2,
                        'temps1': temps1_pr, 'temps2': temps2_pr,
                        'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
-        source2.data = {'times1': times1, 'times2': times2,
-                        'temps1': temps1, 'temps2': temps2}
+        source2.data = {'times1': times_live1, 'times2': times_live2,
+                        'temps1': temps_live1, 'temps2': temps_live2, 
+                        "live_start": times1[0]}
         textD.text = f"Diffusivity (mm^2/s): {round(diffusivity, 6)}"
         textC.text = f"Conductivity (W/mK): {round(conductivity, 6)}"
         textR1.text = f"TC1 R^2: {round(adjusted_r_squared1, 6)}"
