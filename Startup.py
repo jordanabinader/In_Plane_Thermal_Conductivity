@@ -198,9 +198,58 @@ def signalGracefulExit(*args):
     """End all the processes when the test is done to make sure that the ports close out nicely
     """
     global SERVER_PROC, CLIENT_PROC, GRAPH_FULL_PROC, GRAPH_LIVE_PROC, PICO_TALKER_PROC, READ_DAQ_PROC
-    procs = [SERVER_PROC, CLIENT_PROC, GRAPH_FULL_PROC, GRAPH_LIVE_PROC, PICO_TALKER_PROC, READ_DAQ_PROC]
-    for proc in procs:
-        proc.terminate()
+    proc_kill = { #Dictionary of processes to kill
+        "Pico_Talker": {
+            "proc": PICO_TALKER_PROC,
+            "err": True
+        },
+        "Read_DAQ": {
+            "proc": READ_DAQ_PROC,
+            "err": True
+        },
+        "graphLive": {
+            "proc": GRAPH_LIVE_PROC,
+            "err": True
+        },
+        "graphFull": {
+            "proc": GRAPH_FULL_PROC,
+            "err": True
+        },
+        "Server": {
+            "proc": NODE_SERVER_START,
+            "err": True
+        },
+        "Client": {
+            "proc": NODE_CLIENT_START,
+            "err": True
+        }
+    }
+    max_exit = 15
+    for key in proc_kill.keys():
+        proc_kill[key]["proc"].terminate()
+        print(f"Terminated {key}")
+        i = 0
+        while i < max_exit:
+            if proc_kill[key]["proc"].poll() is None: #If the process is still running reset the loop
+                print(f"{key} not shutting down")
+                time.sleep(0.5)
+                i = i+1
+            else:
+                proc_kill[key]["err"] = False
+                break
+    err_procs = []
+    for key in proc_kill.keys(): #Check if any of the processes didn't close out
+        if proc_kill[key]["err"] == False:
+            err_procs.append([key, proc_kill[key]["proc"].pid])
+    
+    if len(err_procs) > 0: #if any proccess didn't close
+        print("The following process(es) didn't close:")
+        for i in err_procs:
+            print(i[0])
+        print("Run the following commands manually to close them:")
+        for i in err_procs:
+            print(f"kill {i[2]}")
+
     os._exit(1)
 
 
