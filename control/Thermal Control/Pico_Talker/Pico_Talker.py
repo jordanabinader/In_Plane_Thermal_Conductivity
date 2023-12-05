@@ -342,12 +342,12 @@ class SerialComm(asyncio.Protocol):
             print("Heater Control Task Power Sine Exited")
     
     async def heaterManual(self):
-        """Coroutine to set the duty cycle of both heaters to the value stored in self.amplitude. Example: self.amplitude = 3.55, duty cycle set to 3.55*
+        """Coroutine to set the power of both heaters to the value stored in self.amplitude. Calculated with self.HEATER_RESISTANCE and self.SUPPLY_VOLTAGE
         """
         print("Entered Manual Control Mode")
         try:
             for heater in self.HEATERS:
-                self.duty_cycle[heater] = self.amplitude
+                self.duty_cycle[heater] = math.sqrt(self.amplitude*self.HEATER_RESISTANCE[heater])/self.SUPPLY_VOLTAGE
             self.sendDutyCycleMsg(2)
 
             while True:
