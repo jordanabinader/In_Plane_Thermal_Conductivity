@@ -13,10 +13,12 @@ const TestGraph = (testIdIn) => {
     const router = useRouter();
     const [togglePosition, setTogglePosition] = useState('left');
     const [buttonStyle, setButtonStyle] = useState({});
+    const [controlModeSetting, setControlModeSetting] = useState('power');
     const [formData, setFormData] = useState({
-        frequency: 0,
+        controlMode: controlModeSetting,
+        frequency: 1,
         amplitude: 0,
-        duty_ratio: 0,
+        dutyCycle: 0,
     });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModal2Open, setIsModal2Open] = useState(false);
@@ -24,11 +26,13 @@ const TestGraph = (testIdIn) => {
     const leftClick = () => {
         setButtonStyle({ left: '0' });
         setTogglePosition('left');
+        setControlModeSetting('power')
     };
 
     const rightClick = () => {
         setButtonStyle({ left: '110px' });
         setTogglePosition('right');
+        setControlModeSetting('manual')
     };
 
     const handleTestStop = async () => {
@@ -151,11 +155,11 @@ const TestGraph = (testIdIn) => {
                                 <div className='w-full md:w-96 mx-auto p-4'>
                                     <InputField
                                     label="Duty Ratio"
-                                    id="duty_ratio"
-                                    name="duty_ratio"
+                                    id="dutyCycle"
+                                    name="dutyCycle"
                                     placeholder="x"
                                     unit = '%'
-                                    value={formData.duty_ratio}
+                                    value={formData.dutyCycle}
                                     onChange={handleTextChange}
                                     />      
                             </div>
