@@ -93,7 +93,7 @@ const TestGraph = (testIdIn) => {
         <div className='bg-white h-screen'>
             <div className='grid md:grid-cols-[4fr_2fr] grid-cols-1 h-1/2'>
                 <div className='rounded-md'>
-                    <div className="bg-gray-200 h-full">
+                    <div className="bg-white h-full">
                     <iframe
                         title="Bokeh Plot"
                         src={testToLoad}
