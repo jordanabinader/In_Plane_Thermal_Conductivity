@@ -18,7 +18,7 @@ const TestGraph = (testIdIn) => {
         controlMode: controlModeSetting,
         frequency: 1,
         amplitude: 0,
-        dutyCycle: 0,
+        amplitudeManual: 0,
     });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModal2Open, setIsModal2Open] = useState(false);
@@ -124,7 +124,7 @@ const TestGraph = (testIdIn) => {
                         <div className={styles.buttonBox}>
                             <div id="btn" style={buttonStyle} className={styles.btn}></div>
                             <button type="button" className={styles.toggleBtn} onClick={leftClick}>Power</button>
-                            <button type="button" className={styles.toggleBtn} onClick={rightClick}>D.R. %</button>
+                            <button type="button" className={styles.toggleBtn} onClick={rightClick}>Manual</button>
                         </div>
                         <form>
                             {togglePosition === 'left' && (
@@ -143,6 +143,7 @@ const TestGraph = (testIdIn) => {
                                     label="Amplitude"
                                     id="amplitude"
                                     name="amplitude"
+                                    unit='W'
                                     placeholder={formData.amplitude}
                                     value={formData.amplitude}
                                     onChange={handleTextChange}
@@ -154,12 +155,12 @@ const TestGraph = (testIdIn) => {
                             <div className='flex justify-center mt-4 mb-4'>
                                 <div className='w-full md:w-96 mx-auto p-4'>
                                     <InputField
-                                    label="Duty Ratio"
-                                    id="dutyCycle"
-                                    name="dutyCycle"
-                                    placeholder="x"
-                                    unit = '%'
-                                    value={formData.dutyCycle}
+                                    label="Amplitude"
+                                    id="amplitudeManual"
+                                    name="amplitudeManual"
+                                    placeholder={formData.amplitudeManual}
+                                    unit='W'
+                                    value={formData.amplitudeManual}
                                     onChange={handleTextChange}
                                     />      
                             </div>
