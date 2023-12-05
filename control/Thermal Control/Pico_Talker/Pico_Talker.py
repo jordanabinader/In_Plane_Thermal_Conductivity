@@ -324,14 +324,14 @@ class SerialComm(asyncio.Protocol):
     async def heaterPower(self):
         """Coroutine to infinitely loop and calculate the duty cycle of the heaters for the raspberry pi pico using a power sin wave
         """
-        print("Heater Control Mode Entered")
+        print("Entered Power Control Mode")
         print(self.frequency, self.control_mode, self.amplitude)
         try:
             while True:
                 await asyncio.sleep(self.DUTY_CYCLE_UPDATE_PERIOD) #pause duty cycle update for a bit while being non-blocking
                 curr_time = time.time()
                 for heater in self.HEATERS:
-                    self.duty_cycle[heater] = math.sqrt(self.HEATER_SCALAR[heater]*self.HEATER_RESISTANCE[heater]*(self.amplitude*math.sin(self.frequency**(2*math.pi)*(curr_time-self.start_time))+self.amplitude))*100/self.SUPPLY_VOLTAGE
+                    self.duty_cycle[heater] = math.sqrt(self.HEATER_SCALAR[heater]*self.HEATER_RESISTANCE[heater]*(self.amplitude*math.sin(self.frequency*(2*math.pi)*(curr_time-self.start_time))+self.amplitude))*100/self.SUPPLY_VOLTAGE
                 
                 self.sendDutyCycleMsg(2)
                 print(f"Time: {curr_time-self.start_time} Heater 0: {self.duty_cycle[0]} Heater 1: {self.duty_cycle[1]}")
