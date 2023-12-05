@@ -55,7 +55,8 @@ async function changeTestSetting(form, insertId) {
       dataToInsert.frequency = form.frequency;
       dataToInsert.amplitude = form.amplitude;
     } else if (form.controlMode === 'manual') {
-      dataToInsert.amplitude = form.dutyCycle;
+      dataToInsert.frequency = 1;
+      dataToInsert.amplitude = form.amplitudeManual;
     }
     changedSetting = await knex(`${testSettingTableName}_${insertId}`).insert(dataToInsert);
 
