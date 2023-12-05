@@ -5,7 +5,7 @@
 
 from bokeh.embed import server_document
 from bokeh.plotting import figure, curdoc, output_file, save
-from bokeh.models import ColumnDataSource, TextInput, DataTable, TableColumn, Checkbox
+from bokeh.models import ColumnDataSource, TextInput, DataTable, TableColumn, Checkbox, BoxAnnotation
 from bokeh.layouts import column, row
 from bokeh.models.widgets import Div, Button
 import numpy as np
@@ -48,6 +48,8 @@ def modify_doc(doc):
     plot = figure(title='Full Data', width=600, height=350)
     plot.line('times1', 'temps1', source=source, line_color='blue', legend_label='TC1')
     plot.line('times2', 'temps2', source=source, line_color='red', legend_label='TC2')
+    sel_bound = BoxAnnotation(fill_alpha = 0)
+    plot.add_layout(sel_bound)
     plot.legend.location = "top_left"
 
     # Create plot for fit data in bounds
@@ -157,19 +159,47 @@ def modify_doc(doc):
         try:
             lower_bound = float(lb_input.value)
         except ValueError:
+            bound_warn.text = "Lower Bound Invalid Input"
             print("Invalid input. Please enter a number.")
             return
         try:
             upper_bound = float(ub_input.value)
         except ValueError:
+            bound_warn.text = "Upper Bound Invalid Input"
             print("Invalid input. Please enter a number.")
             return
         if lower_bound >= upper_bound:
+            bound_warn.text = "Lower bound must be smaller than upper"
             print("Lower Bound must be smaller.")
             return
         if upper_bound > len(times1):
+            bound_warn.text = f"Upper bound is too high"
             print("Upper Bound too high.")
             return
+            
+        #Figure out which frequncy value to use based on user input
+        relT = [float(i) for i in sourceP.data["relTime"]]
+        freq_ops = [float(i) for i in sourceP.data["frq"]]
+
+        for new_setting_start in relT:
+            if new_setting_start>lower_bound and new_setting_start<upper_bound:
+                bound_warn.text = "Selected range includes test setting switch"
+                print("Range includes a test setting change")
+                return
+            
+        bound_warn.text = "" #If bound is valid, clear the message
+        #Find the frequency from the test setting that the selected bound resides in
+        min_diff = [10000000000, -1]
+        for i , new_setting_start in enumerate(relT):
+            if new_setting_start<lower_bound and min_diff[0] > lower_bound-new_setting_start:
+                min_diff = [lower_bound-new_setting_start, i]
+
+        using_frequency = float(freq_ops[min_diff[1]])
+        freq.text = f"Frequency: {using_frequency} Hz"
+        sel_bound.left = lower_bound
+        sel_bound.right = upper_bound
+        sel_bound.fill_alpha = 0.2
+        sel_bound.fill_color = "gray"
 
         # return index of value closest to lower or upper bound
         lb_index = min(range(len(times1)), key=lambda i: abs(times1[i] - lower_bound))
@@ -180,15 +210,6 @@ def modify_doc(doc):
         temps1_plot = temps1[lb_index:ub_index]
         temps2_plot = temps2[lb_index:ub_index]
         
-        # exception for frequency input
-        try:
-            using_frequency = float(frq_input.value)
-        except ValueError:
-            print("Invalid frequency input. Please enter a number.")
-            return
-        if using_frequency == 0:
-            print("Frequency must be a non-zero value")
-            return
         
         global OPAMP_FREQUENCY
         OPAMP_FREQUENCY = using_frequency
@@ -274,10 +295,14 @@ def modify_doc(doc):
     ub_input = TextInput(value="2000", title="Enter Upper Bound")
     lb_input.on_change("value", update_plot)
     ub_input.on_change("value", update_plot)
+
+    #Create field for valid input of lower and upper bound
+    bound_warn = Div(text="", styles={'color': 'red'})
+    freq = Div(text="",styles={'color': 'black'})
     
     # Create input field for frequency
-    frq_input = TextInput(value=".005", title="Enter Frequency (Hz):")
-    frq_input.on_change("value", update_plot)
+    # frq_input = TextInput(value=".005", title="Enter Frequency (Hz):")
+    # frq_input.on_change("value", update_plot)
     
     def save_to_csv():
         # Connect to the database
@@ -316,7 +341,7 @@ def modify_doc(doc):
     
     doc.add_root(row(column(checkbox, param_table),
                      column(plot, plot2),
-                     column(save_button, lb_input, ub_input, frq_input,
+                     column(save_button, lb_input, ub_input, bound_warn, freq,
                             textL, textDT, textM, textN,
                             textD, textC, textR1, textR2)))
 
