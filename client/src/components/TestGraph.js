@@ -123,8 +123,8 @@ const TestGraph = (testIdIn) => {
                     <div className={styles.body}>
                         <div className={styles.buttonBox}>
                             <div id="btn" style={buttonStyle} className={styles.btn}></div>
-                            <button type="button" className={styles.toggleBtn} onClick={leftClick}>Power</button>
-                            <button type="button" className={styles.toggleBtn} onClick={rightClick}>Manual</button>
+                            <button type="button" className={styles.toggleBtnOne} onClick={leftClick}>Power</button>
+                            <button type="button" className={styles.toggleBtnTwo} onClick={rightClick}>Manual</button>
                         </div>
                         <form>
                             {togglePosition === 'left' && (

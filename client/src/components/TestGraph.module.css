@@ -7,8 +7,20 @@
     background: #fff;
 }
 
-.toggleBtn {
-    padding: 5px 25px;
+.toggleBtnOne {
+    padding: 5px 0px 5px 15px;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    outline: none;
+    position: relative;
+    text-align: center;
+    font-weight: bold;
+    color: rgb(92, 91, 91);
+}
+
+.toggleBtnTwo {
+    padding: 5px 0px 5px 60px;
     cursor: pointer;
     background: transparent;
     border: 0;
