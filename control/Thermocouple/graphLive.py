@@ -36,7 +36,7 @@ L = 26  # Distance between thermocouples, CSV = .72
 UPDATE_WAIT = 1000  # in ms, time between updating plot
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
 SAMPLING_RATE = 0.3959535  # amount of time between points, .01 for csv (maybe changed, must reinvestigate)
-PERIODS_TO_VIEW = 2.5  # Determines how many periods of the sine curve will be graphed
+PERIODS_TO_VIEW = 5  # Determines how many periods of the sine curve will be graphed
 MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
 
 DATABASE_NAME = 'server/angstronomers.sqlite3'
