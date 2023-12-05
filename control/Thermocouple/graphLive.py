@@ -72,7 +72,8 @@ def modify_doc(doc):
     plot2.toolbar_location = None
     plot2.line('times1', 'temps1', source=source2, line_color='blue', legend_label='TC1')
     plot2.line('times2', 'temps2', source=source2, line_color='red', legend_label='TC2')
-    live_box = BoxAnnotation(left = "live_start", source = source2, fill_alpha = 0.2, fill_color = "gray")
+    live_t_start = source.data["times1"][0]
+    live_box = BoxAnnotation(left = live_t_start, fill_alpha = 0.2, fill_color = "gray")
     plot2.add_layout(live_box)
     plot2.legend.label_text_font_size = "6pt"
     plot2.legend.location = "bottom_left"
