@@ -1,5 +1,5 @@
 'use client';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 import Modal from './Modal';
 
@@ -10,10 +10,11 @@ const TableComponent = ({ data, handleDelete}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = data.slice(startIndex, endIndex);
+
+  // Compute filtered data based on search term
+  const filteredData = data.filter(item => 
+    item.testName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const goToPage = (page, event) => {
     event.preventDefault();
@@ -35,6 +36,16 @@ const TableComponent = ({ data, handleDelete}) => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
   }
+
+  // Update total pages and reset current page when data or search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, data]);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = filteredData.slice(startIndex, endIndex);
 
   return (
     <div className="relative overflow-x-auto sm:rounded-lg"> 
