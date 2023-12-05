@@ -6,7 +6,7 @@ const ScrollToTest = () => {
   const router = useRouter();
 
   function handleScroll() {
-    router.push('/');
+    router.push('/')
 
     setTimeout(() => {
       window.scroll({

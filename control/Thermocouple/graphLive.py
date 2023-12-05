@@ -114,8 +114,7 @@ def modify_doc(doc):
                         ORDER BY datetime DESC
                         LIMIT 1''')
         resultsP = cursor.fetchall()
-        #new_frq = resultsP[0][0] TODO
-        new_frq = .000797
+        new_frq = resultsP[0][0]
         if new_frq != OPAMP_FREQUENCY:
             OPAMP_FREQUENCY = new_frq
             TIMESTAMP_FRQ_CHANGE = resultsP[0][1]

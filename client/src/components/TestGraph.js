@@ -93,7 +93,7 @@ const TestGraph = (testIdIn) => {
         <div className='bg-white h-screen'>
             <div className='grid md:grid-cols-[4fr_2fr] grid-cols-1 h-1/2'>
                 <div className='rounded-md'>
-                    <div className="bg-gray-200 h-full">
+                    <div className="bg-white h-full">
                     <iframe
                         title="Bokeh Plot"
                         src={testToLoad}
@@ -123,8 +123,8 @@ const TestGraph = (testIdIn) => {
                     <div className={styles.body}>
                         <div className={styles.buttonBox}>
                             <div id="btn" style={buttonStyle} className={styles.btn}></div>
-                            <button type="button" className={styles.toggleBtn} onClick={leftClick}>Power</button>
-                            <button type="button" className={styles.toggleBtn} onClick={rightClick}>Manual</button>
+                            <button type="button" className={styles.toggleBtnOne} onClick={leftClick}>Power</button>
+                            <button type="button" className={styles.toggleBtnTwo} onClick={rightClick}>Manual</button>
                         </div>
                         <form>
                             {togglePosition === 'left' && (
