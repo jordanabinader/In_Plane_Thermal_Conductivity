@@ -7,61 +7,104 @@ This project integrates various components such as server, database, web applica
 - **Client**: Implements the user interface using Next.js and manages HTTP requests with axios.
 - **Server**: A Node.js server employing Express.js for HTTP requests and connecting to an SQLite3 database, with database manipulation facilitated by Knex.
 - **Control**: A collection of python scripts dedicated to recording the data from the thermocouples, controlling the heaters, and calculating the thermal conductivity
-  - *Thermal Control*: Setting the duty cycle of the heaters based on the control mode set by the user in the website.
+  - *Thermal Control*
+    - Pico_Talker.py: Setting the duty cycle of the heaters based on the control mode set by the user in the website.
+  - *Thermocouple*
+    - writeFromDAQ.py: Recieves the data from the TC-08 DAQ and writes the temperatures to the temperature table in the database
+    - graphLive.py: Active when a test is in progress, shutdown when there is no live test. Plots the live temperature data along side calculated sin fit.
+    - graphFull.py: Active when there is no live test, shutdown when there is a live test. Similar functionality to graphLive.py but for going back through old data. 
 
 
-## Getting Started
-
-### Prerequisites
-- Node.js
-- npm or yarn
-- SQLite3
-- Python 3.11.6
-- PicoSDK
+## Using the Repository
 
 ### Installation
-1. **Clone the repository**:
 
-
-2. **Install dependencies**:
-- For the client:
+1. Update and upgrade ubuntu packages
   ```
-  cd client
-  npm install
+  sudo apt update && sudo apt upgrade
   ```
-- For the server:
+2. Install picosdk and drivers for the Pico Logger TC-08. Instructions from: https://www.picotech.com/downloads/linux
   ```
-  cd server
-  npm install
+  sudo bash -c 'wget -O- https://labs.picotech.com/Release.gpg.key | gpg --dearmor > /usr/share/keyrings/picotech-archive-keyring.gpg'
+  sudo bash -c 'echo "deb [signed-by=/usr/share/keyrings/picotech-archive-keyring.gpg] https://labs.picotech.com/picoscope7/debian/ picoscope main" >/etc/apt/sources.list.d/picoscope7.list'
+  sudo apt-get update
+  sudo apt-get install libusbtc08
   ```
 
-- **Start the program**
+3. Install Python 3.11
+  ```
+  sudo apt install python3.11
+  ```
+4. Install pip
+  ```
+  sudo apt install python3-pip
   ```
 
-  python Startup.py
+5. Install venv pip package
   ```
-  
-- For the python scripts
+  python3.11 -m pip install venv
   ```
-  pip install -r requirements.txt
+6. Install curl
+  ```
+  sudo apt install curl
+  ```
+7. Install nvm  
+  ```
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.6/install.sh | bash
+  source ~/.bashrc
+  ```
+8. Install Node LTS 20.10.0 and specify it as default
+  ```
+  nvm install 20.10.0
+  nvm alias default 20.10.0
   ```
 
-3. **Setting up the database**:
-- Navigate to the server directory.
-- Run the database schema setup scripts.
+9. **Clone the repository**: <!-- Replace git clone command with one specifying version once its released -->
+  ```
+  git clone https://github.com/jordanabinader/In_Plane_Thermal_Conductivity.git
+  cd In_Plane_Thermal_Conductivity/
+  ```
 
-### Running the Application
+10. **Install node dependencies**:
+   - For the client:
+       ```
+       cd client
+       npm install
+       cd ../
+       ```
+   - For the server:
+       ```
+       cd server
+       npm install
+       cd ../
+       ```
+11. **Install python dependencies**
+  ```
+  source iptc_venv/bin/activate
+  python3.11 -m pip install -r requirements.txt
+  ```
 
-- **Start the client**:
-cd client
-npm start
+### Running the program
+Your current working directory should be the base folder of the In_Plane_Thermal_Conductivity repository
 
-- **Start the server** (in a new terminal window):
-cd server
-node server.js
+1. Activate the virtual environment
+  ```
+  source iptc_venv/bin/activate
+  ```
+2. Check the serial port
+  ```
+  ls -l /dev/serial/by-id
+  ```
+  The raspberry pi pico likely defaults to ttyACM0, but if not change the ttyACM0 in the command below to what this command highlights
 
-## Usage
-Provide instructions on how to use the application, including any available commands, features, and how users can perform key tasks.
+3. Start everything up
+  ```
+  python3.11 Startup.py --serial-port /dev/ttyACM0
+  ```
+4. To end all the scripts `ctrl+c` the command above.
+
+Any necessary terminal commands you need to do while the webserver is active, do in a different terminal window
+
 
 ## Database Schema
 The application uses the following SQLite3 database schemas:
