@@ -53,6 +53,7 @@ export default function FilterTable() {
   const [filters, setFilters] = useState(initialFilters);
   const [originalData, setOriginalData] = useState([]);
   const [data, setData] = useState([]);
+  const [sortOption, setSortOption] = useState('date');
 
   const fetchData = async () => {
     try {
@@ -134,6 +135,53 @@ export default function FilterTable() {
       console.error('Error deleting test:', error.message);
     }
   };
+
+    // Function to handle sorting
+    const sortData = (option) => {
+      let sortedData = [...data];
+      switch (option) {
+        case 'date':
+          sortedData.sort((a, b) => new Date(a.date) - new Date(b.date));
+          break;
+        case 'conductivity':
+          sortedData.sort((a, b) => a.conductivity - b.conductivity);
+          break;
+        case 'diffusivity':
+          sortedData.sort((a, b) => a.diffusivity - b.diffusivity);
+          break;
+        case 'density':
+          sortedData.sort((a, b) => a.density - b.density);
+          break;
+        case 'specific heat':
+          sortedData.sort((a, b) => a.specificHeatCapacity - b.specificHeatCapacity);
+          break;
+        case 'tc Distance':
+          sortedData.sort((a, b) => a.tcDistance - b.tcDistance);
+          break;
+        default:
+          break;
+      }
+      setData(sortedData);
+    };
+  
+    // Function to handle sort option change
+    const handleSortChange = (option) => {
+      setSortOption(option);
+      sortData(option);
+      // Update sort options to reflect the current selection
+      sortOptions.forEach(o => {
+        o.current = o.name.toLowerCase() === option;
+      });
+    };
+  
+    // Sort data when sortOption changes
+    useEffect(() => {
+      sortData(sortOption);
+    }, [sortOption]);  
+
+  function classNames(...classes) {
+    return classes.filter(Boolean).join(' ');
+  }
 
   return (
     <div className="bg-white">
@@ -295,7 +343,8 @@ export default function FilterTable() {
                         <Menu.Item key={option.name}>
                           {({ active }) => (
                             <a
-                              href={option.href}
+                              href='#'
+                              onClick={() => handleSortChange(option.name.toLowerCase())}
                               className={classNames(
                                 option.current ? 'font-medium text-gray-900' : 'text-gray-500',
                                 active ? 'bg-gray-100' : '',
