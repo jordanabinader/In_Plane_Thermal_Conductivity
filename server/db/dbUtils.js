@@ -47,13 +47,17 @@ async function deleteTestByTestId(testId) {
 
 async function changeTestSetting(form, insertId) {
   try {
-
-    changedSetting = await knex(`${testSettingTableName}_${insertId}`).insert({
+    let dataToInsert = {
       datetime: new Date().toISOString().replace('T', ' ').replace('Z', ''),
-      controlMode: 'manual',
-      frequency: form.frequency,
-      amplitude: form.amplitude,
-    });
+      controlMode: form.controlMode,
+    }
+    if (form.controlMode === 'power') {
+      dataToInsert.frequency = form.frequency;
+      dataToInsert.amplitude = form.amplitude;
+    } else if (form.controlMode === 'manual') {
+      dataToInsert.amplitude = form.dutyCycle;
+    }
+    changedSetting = await knex(`${testSettingTableName}_${insertId}`).insert(dataToInsert);
 
     return {
       frequency: changedSetting.frequency,
@@ -152,7 +156,6 @@ async function startTest(form) {
         table.float('temp6');
         table.float('temp7');
         table.float('temp8');
-        // Add other temperature columns as needed
       }}
     ];
 
@@ -167,7 +170,7 @@ async function startTest(form) {
     const testSettingInit = await knex(`${testSettingTableName}_${insertId}`).insert({
       datetime: new Date().toISOString().replace('T', ' ').replace('Z', ''),
       controlMode: 'manual',
-      frequency: 0,
+      frequency: 1,
       amplitude: 0,
     });
 
