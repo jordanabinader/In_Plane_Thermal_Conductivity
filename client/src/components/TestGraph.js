@@ -45,7 +45,7 @@ const TestGraph = (testIdIn) => {
         }
 
         try {
-            const responseEnd = await axios.put('http://localhost:2999/test-end/${testIdIn.testIdIn}', testIdIn);
+            const responseEnd = await axios.put(`http://localhost:2999/test-end/${testIdIn.testIdIn}`, testIdIn);
             console.log('Active State changed successfully:', responseEnd.data);
         } catch (error) {
             console.error('Error stopping test:', error);
