@@ -17,6 +17,8 @@ from bokeh.server.server import Server
 from tornado.ioloop import IOLoop
 from threading import Thread
 from datetime import datetime
+import signal
+import os
 
 # Set from Flask Fetch - See app route
 TEST_ID = "1"
@@ -365,5 +367,16 @@ def bk_worker():
 
 Thread(target=bk_worker).start()
 
+def gracefulExit(*args):
+    """force the script to close because I think bokeh/flask changes normal exit behavior
+    """
+    print("Entered Graceful Exit")
+    os._exit(1)
+
+
 if __name__ == '__main__':
+    signals = (signal.SIGTERM, signal.SIGINT)
+    for s in signals:
+        signal.signal(s, gracefulExit)
+
     app.run(port=8124)
