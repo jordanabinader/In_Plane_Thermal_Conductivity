@@ -73,10 +73,8 @@ def modify_doc(doc):
     plot2.toolbar_location = None
     plot2.line('times1', 'temps1', source=source2, line_color='blue', legend_label='TC1')
     plot2.line('times2', 'temps2', source=source2, line_color='red', legend_label='TC2')
-    if len(source.data["times1"]) > 0:
-        fitted_start = source.data["times1"][0]
-        fitted_range_shader = BoxAnnotation(left = fitted_start, fill_alpha = 0.2, fill_color = "gray")
-        plot2.add_layout(fitted_range_shader)
+    fitted_range_shader = BoxAnnotation(fill_alpha = 0, fill_color = "gray")
+    plot2.add_layout(fitted_range_shader)
     plot2.legend.label_text_font_size = "6pt"
     plot2.legend.location = "bottom_left"
 
@@ -131,7 +129,7 @@ def modify_doc(doc):
                 FITTED_GRAPH_MAX_BUFFER = max(5000, int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))) #max() So on startup it doesn't default to displaying a super small number of points
             else:
                 FITTED_GRAPH_MAX_BUFFER = 5000 #Default value if in manual control and freq is set to 0
-                
+
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
                         FROM {TEST_DIR_TABLE_NAME}
@@ -235,6 +233,8 @@ def modify_doc(doc):
                        'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
         source2.data = {'times1': live_graph_times1, 'times2': live_graph_times2,
                         'temps1': live_graph_temps1, 'temps2': live_graph_temps2}
+        fitted_range_shader.left = fitted_graph_times1[-1]
+        fitted_range_shader.fill_alpha = 0.2
         textD.text = f"Diffusivity (mm^2/s): {round(diffusivity, 6)}"
         textC.text = f"Conductivity (W/mK): {round(conductivity, 6)}"
         textR1.text = f"TC1 R^2: {round(adjusted_r_squared1, 6)}"
