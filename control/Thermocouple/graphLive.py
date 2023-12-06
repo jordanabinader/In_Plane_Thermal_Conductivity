@@ -5,7 +5,7 @@
 
 from bokeh.embed import server_document
 from bokeh.plotting import figure, curdoc, output_file, save
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, BoxAnnotation
 from bokeh.layouts import column, row, layout
 from bokeh.models.widgets import Button, Div
 import numpy as np
@@ -72,6 +72,10 @@ def modify_doc(doc):
     plot2.toolbar_location = None
     plot2.line('times1', 'temps1', source=source2, line_color='blue', legend_label='TC1')
     plot2.line('times2', 'temps2', source=source2, line_color='red', legend_label='TC2')
+    if len(source.data["times1"]) > 0:
+        fitted_start = source.data["times1"][0]
+        fitted_range_shader = BoxAnnotation(left = fitted_start, fill_alpha = 0.2, fill_color = "gray")
+        plot2.add_layout(fitted_range_shader)
     plot2.legend.label_text_font_size = "6pt"
     plot2.legend.location = "bottom_left"
 
@@ -144,16 +148,23 @@ def modify_doc(doc):
         if len(live_graph_temps1)>FITTED_GRAPH_MAX_BUFFER:
             fitted_graph_temps1 =live_graph_temps1[-FITTED_GRAPH_MAX_BUFFER:]
             fitted_graph_temps2 =live_graph_temps2[-FITTED_GRAPH_MAX_BUFFER:]
+            fitted_graph_times1 =live_graph_times1[-FITTED_GRAPH_MAX_BUFFER:]
+            fitted_graph_times2 =live_graph_times2[-FITTED_GRAPH_MAX_BUFFER:]
+        else:
+            fitted_graph_temps1 =live_graph_temps1
+            fitted_graph_temps2 =live_graph_temps2
+            fitted_graph_times1 =live_graph_times1
+            fitted_graph_times2 =live_graph_times2
 
         #########################################################################
         # LEFT OFF HERE    
 
         # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
-        temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
-        temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
+        temps1_pr = ut.process_data(fitted_graph_temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
+        temps2_pr = ut.process_data(fitted_graph_temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
 
-        params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, times1, OPAMP_FREQUENCY)
-        params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, times2, OPAMP_FREQUENCY)
+        params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, fitted_graph_times1, OPAMP_FREQUENCY)
+        params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, fitted_graph_times1, OPAMP_FREQUENCY)
         phaseShifts = [params1[2], params2[2]]
 
         # Continue with the remaining calculations
@@ -205,17 +216,17 @@ def modify_doc(doc):
         conductivity = diffusivity_for_calc * density_for_calc * SPECIFIC_HEAT  # in W/m·K
 
         a1, b1, c1 = params1
-        y_fitted1 = a1 + b1 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (times1 + c1))
+        y_fitted1 = a1 + b1 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times1 + c1))
 
         a2, b2, c2 = params2
-        y_fitted2 = a2 + b2 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (times2 + c2))
+        y_fitted2 = a2 + b2 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times2 + c2))
 
         # Update the ColumnDataSource data for both lines
-        source.data = {'times1': times1, 'times2': times2,
+        source.data = {'times1': fitted_graph_times1, 'times2': fitted_graph_times2,
                        'temps1': temps1_pr, 'temps2': temps2_pr,
                        'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
-        source2.data = {'times1': times1, 'times2': times2,
-                        'temps1': temps1, 'temps2': temps2}
+        source2.data = {'times1': live_graph_times1, 'times2': live_graph_times2,
+                        'temps1': live_graph_temps1, 'temps2': live_graph_temps2}
         textD.text = f"Diffusivity (mm^2/s): {round(diffusivity, 6)}"
         textC.text = f"Conductivity (W/mK): {round(conductivity, 6)}"
         textR1.text = f"TC1 R^2: {round(adjusted_r_squared1, 6)}"
