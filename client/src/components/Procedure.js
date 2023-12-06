@@ -6,25 +6,25 @@
             <div>
                 <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Procedure</h2>
                 <p className="mt-4 text-gray-500">
-                The Ångström method procedure...
+                The Ångström method procedure.
                 </p>
   
                 <dl className="mt-16 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 sm:gap-y-16 lg:gap-x-8">
                     <div className="border-t border-gray-200 pt-4">
                         <dt className="font-medium text-red-600">1 - Lift the clamp blocks</dt>
-                        <dd className="mt-2 text-sm text-gray-500">Remove the thumb screw and lift the clamp blockson both sides. Fix them using... </dd>
+                        <dd className="mt-2 text-sm text-gray-500">Remove the thumb screw and lift the clamp blocks on both sides.</dd>
                     </div>
                     <div className="border-t border-gray-200 pt-4">
                         <dt className="font-medium text-red-600">2 - Mount the sample</dt>
-                        <dd className="mt-2 text-sm text-gray-500">Align sample with clamping... </dd>  
+                        <dd className="mt-2 text-sm text-gray-500">Insert one end of the sample into the constant temperature clamp. Slide the heat source clamp, inserting the other end of the sample.</dd>  
                     </div>
                     <div className="border-t border-gray-200 pt-4">
-                        <dt className="font-medium text-red-600">3 - Tighted the clamps</dt>
-                        <dd className="mt-2 text-sm text-gray-500">Adjust with spring and spacer blocks... </dd>  
+                        <dt className="font-medium text-red-600">3 - Tighten the clamps</dt>
+                        <dd className="mt-2 text-sm text-gray-500">If needed, swap out appropriate spacer blocks and springs. Twist the bolt down carefully, until desired applied presure.</dd>  
                     </div>
                     <div className="border-t border-gray-200 pt-4">
                         <dt className="font-medium text-red-600">4 - Set the thermocouples</dt>
-                        <dd className="mt-2 text-sm text-gray-500">Adjust TC distance with standoffs... </dd>  
+                        <dd className="mt-2 text-sm text-gray-500">Adjust thermocouples span length by inserting the desired standoff between the two arms. Loosely tighten with thumb screws. Place them onto sample and adjust horizontal displacement if needed.</dd>  
                     </div>
                 </dl>
             </div>
