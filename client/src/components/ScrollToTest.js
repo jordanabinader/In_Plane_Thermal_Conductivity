@@ -6,15 +6,23 @@ const ScrollToTest = () => {
   const router = useRouter();
 
   function handleScroll() {
-    router.push('/')
+    if (window.location.pathname !== '/') {
+      router.push('/')
 
-    setTimeout(() => {
+      setTimeout(() => {
+        window.scroll({
+          top: document.body.offsetHeight,
+          left: 0,
+          behavior: 'smooth'
+        });
+      }, 500); 
+    } else {
       window.scroll({
         top: document.body.offsetHeight,
         left: 0,
         behavior: 'smooth'
       });
-    }, 500); 
+    }
   }
 
   return (
