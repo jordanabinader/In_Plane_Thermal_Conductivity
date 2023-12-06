@@ -161,86 +161,95 @@ def modify_doc(doc):
             fitted_graph_temps2 =live_graph_temps2
             fitted_graph_times1 =live_graph_times1
             fitted_graph_times2 =live_graph_times2
-
-        #########################################################################
-        # LEFT OFF HERE    
-
+   
         # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
-        temps1_pr = ut.process_data(fitted_graph_temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
-        temps2_pr = ut.process_data(fitted_graph_temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
+        if len(fitted_graph_temps1) > 800:
+            temps1_pr = ut.process_data(fitted_graph_temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
+            temps2_pr = ut.process_data(fitted_graph_temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
 
-        params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, fitted_graph_times1, OPAMP_FREQUENCY)
-        params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, fitted_graph_times1, OPAMP_FREQUENCY)
-        phaseShifts = [params1[2], params2[2]]
+            params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, fitted_graph_times1, OPAMP_FREQUENCY)
+            params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, fitted_graph_times1, OPAMP_FREQUENCY)
+            phaseShifts = [params1[2], params2[2]]
 
-        # Continue with the remaining calculations
-        M = 2 * params1[1]
-        N = 2 * params2[1]
-        if OPAMP_FREQUENCY != 0:
-            period = 1 / OPAMP_FREQUENCY
-        else:
-            period = 1
+            # Continue with the remaining calculations
+            M = 2 * params1[1]
+            N = 2 * params2[1]
+            if OPAMP_FREQUENCY != 0:
+                period = 1 / OPAMP_FREQUENCY
+            else:
+                period = 1
 
-        if M < 0:
-            phaseShifts[0] = phaseShifts[0] + period / 2
-            M = -M
+            if M < 0:
+                phaseShifts[0] = phaseShifts[0] + period / 2
+                M = -M
 
-        if N < 0:
-            phaseShifts[1] = phaseShifts[1] + period / 2
-            N = -N
+            if N < 0:
+                phaseShifts[1] = phaseShifts[1] + period / 2
+                N = -N
 
-        # ---Commented out, not sure if needed---
-        # # Reduce first phase shift to the very first multiple to the right of t=0
-        # if phaseShifts[0] > 0:
-        #     while phaseShifts[0] > 0:
-        #         phaseShifts[0] = phaseShifts[0] - period
-        # else:
-        #     while phaseShifts[0] < -period:
-        #         phaseShifts[0] = phaseShifts[0] + period
+            # ---Commented out, not sure if needed---
+            # # Reduce first phase shift to the very first multiple to the right of t=0
+            # if phaseShifts[0] > 0:
+            #     while phaseShifts[0] > 0:
+            #         phaseShifts[0] = phaseShifts[0] - period
+            # else:
+            #     while phaseShifts[0] < -period:
+            #         phaseShifts[0] = phaseShifts[0] + period
 
-        # # Reduce 2nd phase shift to the very first multiple to the right of t=0
-        # if phaseShifts[1] > 0:
-        #     while phaseShifts[1] > 0:
-        #         phaseShifts[1] = phaseShifts[1] - period
-        # else:
-        #     while phaseShifts[1] < -period:
-        #         phaseShifts[1] = phaseShifts[1] + period
+            # # Reduce 2nd phase shift to the very first multiple to the right of t=0
+            # if phaseShifts[1] > 0:
+            #     while phaseShifts[1] > 0:
+            #         phaseShifts[1] = phaseShifts[1] - period
+            # else:
+            #     while phaseShifts[1] < -period:
+            #         phaseShifts[1] = phaseShifts[1] + period
 
-        # # Add a phase to ensure 2 is after 1 in time
-        # if phaseShifts[1] > phaseShifts[0]:
-        #     phaseShifts[1] = phaseShifts[1] - period
+            # # Add a phase to ensure 2 is after 1 in time
+            # if phaseShifts[1] > phaseShifts[0]:
+            #     phaseShifts[1] = phaseShifts[1] - period
 
-        phaseDifference = abs(phaseShifts[1] - phaseShifts[0])  # From wave mechanics - same frequency but different additive constants 
-                                                                # so the phase difference is just the difference of the individual phase shifts
-        phaseDifference = phaseDifference % period
-        delta_time = phaseDifference
+            phaseDifference = abs(phaseShifts[1] - phaseShifts[0])  # From wave mechanics - same frequency but different additive constants 
+                                                                    # so the phase difference is just the difference of the individual phase shifts
+            phaseDifference = phaseDifference % period
+            delta_time = phaseDifference
 
-        diffusivity = L ** 2 / (2 * delta_time * np.log(M / N))  # in mm^2/s
-        diffusivity_for_calc = diffusivity * 0.000001  # in m^2/s
-        density_for_calc = DENSITY * 1000  # in kg/m^3
-        # Specific Heat in J/kgC (or Kelvin, its the same)
-        conductivity = diffusivity_for_calc * density_for_calc * SPECIFIC_HEAT  # in W/m·K
+            diffusivity = L ** 2 / (2 * delta_time * np.log(M / N))  # in mm^2/s
+            diffusivity_for_calc = diffusivity * 0.000001  # in m^2/s
+            density_for_calc = DENSITY * 1000  # in kg/m^3
+            # Specific Heat in J/kgC (or Kelvin, its the same)
+            conductivity = diffusivity_for_calc * density_for_calc * SPECIFIC_HEAT  # in W/m·K
 
-        a1, b1, c1 = params1
-        y_fitted1 = a1 + b1 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times1 + c1))
+            a1, b1, c1 = params1
+            y_fitted1 = a1 + b1 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times1 + c1))
 
-        a2, b2, c2 = params2
-        y_fitted2 = a2 + b2 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times2 + c2))
+            a2, b2, c2 = params2
+            y_fitted2 = a2 + b2 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times2 + c2))
 
-        # Update the ColumnDataSource data for both lines
-        print(len(fitted_graph_times1))
-        print(len(live_graph_times1))
-        source.data = {'times1': fitted_graph_times1, 'times2': fitted_graph_times2,
-                       'temps1': temps1_pr, 'temps2': temps2_pr,
-                       'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
+            # Update the ColumnDataSource data for both lines
+            print(len(fitted_graph_times1))
+            print(len(live_graph_times1))
+            source.data = {'times1': fitted_graph_times1, 'times2': fitted_graph_times2,
+                        'temps1': temps1_pr, 'temps2': temps2_pr,
+                        'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
+            
+            textD.text = f"Diffusivity (mm^2/s): {round(diffusivity, 6)}"
+            textC.text = f"Conductivity (W/mK): {round(conductivity, 6)}"
+            textR1.text = f"TC1 R^2: {round(adjusted_r_squared1, 6)}"
+            textR2.text = f"TC2 R^2: {round(adjusted_r_squared2, 6)}"
+        else:     
+            textD.text = f"Diffusivity (mm^2/s): N/A"
+            textC.text = f"Conductivity (W/mK): N/A"
+            textR1.text = f"TC1 R^2: N/A"
+            textR2.text = f"TC2 R^2: N/A"
+            source.data = {'times1': fitted_graph_times1, 'times2': fitted_graph_times2,
+                        'temps1': temps1_pr, 'temps2': temps2_pr}
+
         source2.data = {'times1': live_graph_times1, 'times2': live_graph_times2,
                         'temps1': live_graph_temps1, 'temps2': live_graph_temps2}
         fitted_range_shader.left = fitted_graph_times1[-1]
         fitted_range_shader.fill_alpha = 0.2
-        textD.text = f"Diffusivity (mm^2/s): {round(diffusivity, 6)}"
-        textC.text = f"Conductivity (W/mK): {round(conductivity, 6)}"
-        textR1.text = f"TC1 R^2: {round(adjusted_r_squared1, 6)}"
-        textR2.text = f"TC2 R^2: {round(adjusted_r_squared2, 6)}"
+        
+        
         if results2:
             text3.text = f"TC3: {round(results2[0][0],3)}"
             text4.text = f"TC4: {round(results2[0][1],3)}"
