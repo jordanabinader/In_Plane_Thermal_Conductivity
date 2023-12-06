@@ -38,6 +38,21 @@ const TestConstants = () => {
     let errorMessageIn = '';
 
     try {
+      const response = await axios.get(`http://localhost:2999/queryLastRow/test_directory`);
+      console.log('Success looking for active tests:', response.data.active)
+      if (response.data.active === 1) {
+        errorMessageIn = 'Error starting test: A test is currently running!'
+        setIsCompliant(false);
+        setErrorMessage(errorMessageIn);
+        return; 
+      } else {
+        setIsCompliant(true);
+      }
+    } catch (error) {
+      console.error("Error fetching the last row:", error.message);
+    }
+    
+    try {
       let dataToSend;
       if (testSetup instanceof FormData) {
         dataToSend = Object.fromEntries(testSetup.entries());
@@ -56,24 +71,7 @@ const TestConstants = () => {
         setIsCompliant(false);
         setErrorMessage(errorMessageIn); // Display the error message in UI
         return;
-      } 
-    
-    
-    try {
-      const response = await axios.get(`http://localhost:2999/queryLastRow/test_directory`);
-      console.log('Success looking for active tests:', response.data.active)
-      if (response.data.active === 1) {
-        errorMessageIn = 'Error starting test: A test is currently running!'
-        setIsCompliant(false);
-        setErrorMessage(errorMessageIn);
-        return; 
-      } else {
-        setIsCompliant(true);
-      }
-    } catch (error) {
-      console.error("Error fetching the last row:", error.message);
-    }
-    
+      }  
 
     try {
 
