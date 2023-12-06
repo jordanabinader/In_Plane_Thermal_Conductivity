@@ -116,9 +116,7 @@ export default function FilterTable() {
         });
       }
     });
-    if (filterData.lenth !== 0) {
       setData(filteredData);
-    } 
   };
 
   const handleDelete = async (testId, event) => {
