@@ -5,7 +5,7 @@
 
 from bokeh.embed import server_document
 from bokeh.plotting import figure, curdoc, output_file, save
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, BoxAnnotation
 from bokeh.layouts import column, row, layout
 from bokeh.models.widgets import Button, Div
 import numpy as np
@@ -25,7 +25,8 @@ TABLE_NAME_PARAM = "test_settings_" + TEST_ID
 
 # Changes Live from Database Query
 OPAMP_FREQUENCY = .000797  # 1/OpAmp Period, .002 for csv
-TIMESTAMP_FRQ_CHANGE = '2000-01-01 00:00:00'
+CONTROL_AMP = -1
+TIMESTAMP_TS_CHANGE = '2000-01-01 00:00:00'
 
 # Set from Database Query
 DENSITY = 1
@@ -37,7 +38,9 @@ UPDATE_WAIT = 1000  # in ms, time between updating plot
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
 SAMPLING_RATE = 0.3959535  # amount of time between points, .01 for csv (maybe changed, must reinvestigate)
 PERIODS_TO_VIEW = 5  # Determines how many periods of the sine curve will be graphed
-MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+FITTED_GRAPH_MAX_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+LIVE_GRAPH_MAX_BUFFER = int(13000./SAMPLING_RATE)
+
 
 DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
@@ -70,6 +73,8 @@ def modify_doc(doc):
     plot2.toolbar_location = None
     plot2.line('times1', 'temps1', source=source2, line_color='blue', legend_label='TC1')
     plot2.line('times2', 'temps2', source=source2, line_color='red', legend_label='TC2')
+    fitted_range_shader = BoxAnnotation(fill_alpha = 0, fill_color = "gray")
+    plot2.add_layout(fitted_range_shader)
     plot2.legend.label_text_font_size = "6pt"
     plot2.legend.location = "bottom_left"
 
@@ -92,13 +97,13 @@ def modify_doc(doc):
 
     def update_data():
         # Get Main TC Data
-        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L, MAX_GRAPH_BUFFER
+        global TIMESTAMP_TS_CHANGE, OPAMP_FREQUENCY, CONTROL_AMP, DENSITY, SPECIFIC_HEAT, L, FITTED_GRAPH_MAX_BUFFER
         cursor.execute(f'''SELECT relTime, temp1, temp2
                           FROM {TABLE_NAME_TC}
                           WHERE datetime > ?
                           ORDER BY relTime DESC
-                          LIMIT ?''', (TIMESTAMP_FRQ_CHANGE,MAX_GRAPH_BUFFER,))
-        results = cursor.fetchall()
+                          LIMIT ?''', (TIMESTAMP_TS_CHANGE,LIVE_GRAPH_MAX_BUFFER,))
+        temp_table_results = cursor.fetchall()
 
         # Get Other TC Data
         cursor.execute(f'''SELECT temp3, temp4, temp5, temp6, temp7, temp8
@@ -109,17 +114,21 @@ def modify_doc(doc):
         results2 = cursor.fetchall()
         
         # Get Parameters Data - Timing + Frequency
-        cursor.execute(f'''SELECT frequency, datetime
+        cursor.execute(f'''SELECT frequency, amplitude, datetime
                         FROM {TABLE_NAME_PARAM}
                         ORDER BY datetime DESC
                         LIMIT 1''')
         resultsP = cursor.fetchall()
         new_frq = resultsP[0][0]
-        if new_frq != OPAMP_FREQUENCY:
+        new_amp = resultsP[0][1]
+        if new_frq != OPAMP_FREQUENCY or new_amp != CONTROL_AMP:
             OPAMP_FREQUENCY = new_frq
-            TIMESTAMP_FRQ_CHANGE = resultsP[0][1]
+            CONTROL_AMP = new_amp
+            TIMESTAMP_TS_CHANGE = resultsP[0][2]
             if OPAMP_FREQUENCY != 0:
-                MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+                FITTED_GRAPH_MAX_BUFFER = max(5000, int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))) #max() So on startup it doesn't default to displaying a super small number of points
+            else:
+                FITTED_GRAPH_MAX_BUFFER = 5000 #Default value if in manual control and freq is set to 0
 
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -131,20 +140,35 @@ def modify_doc(doc):
         SPECIFIC_HEAT = resultsC[0][1]
         L = resultsC[0][2]
 
-        # Add data
-        times1 = [row[0] for row in results]
-        temps1 = [row[1] for row in results]
-        temps2 = [row[2] for row in results]
+        # Add data for live plot (plot2)
+        live_graph_times1 = [row[0] for row in temp_table_results]
+        live_graph_temps1 = [row[1] for row in temp_table_results]
+        live_graph_temps2 = [row[2] for row in temp_table_results]
 
-        # Fix timing for temps2
-        times2 = [x+TC_TIME_SHIFT for x in times1]
+        # Fix timing for live_temps2
+        live_graph_times2 = [x+TC_TIME_SHIFT for x in live_graph_times1]
+
+        if len(live_graph_temps1)>FITTED_GRAPH_MAX_BUFFER:
+            
+            fitted_graph_temps1 =live_graph_temps1[:FITTED_GRAPH_MAX_BUFFER] #Returned values from the table are in reverse order with most recent first
+            fitted_graph_temps2 =live_graph_temps2[:FITTED_GRAPH_MAX_BUFFER]
+            fitted_graph_times1 =live_graph_times1[:FITTED_GRAPH_MAX_BUFFER]
+            fitted_graph_times2 =live_graph_times2[:FITTED_GRAPH_MAX_BUFFER]
+        else:
+            fitted_graph_temps1 =live_graph_temps1
+            fitted_graph_temps2 =live_graph_temps2
+            fitted_graph_times1 =live_graph_times1
+            fitted_graph_times2 =live_graph_times2
+
+        #########################################################################
+        # LEFT OFF HERE    
 
         # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
-        temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
-        temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
+        temps1_pr = ut.process_data(fitted_graph_temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
+        temps2_pr = ut.process_data(fitted_graph_temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
 
-        params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, times1, OPAMP_FREQUENCY)
-        params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, times2, OPAMP_FREQUENCY)
+        params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, fitted_graph_times1, OPAMP_FREQUENCY)
+        params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, fitted_graph_times1, OPAMP_FREQUENCY)
         phaseShifts = [params1[2], params2[2]]
 
         # Continue with the remaining calculations
@@ -196,17 +220,21 @@ def modify_doc(doc):
         conductivity = diffusivity_for_calc * density_for_calc * SPECIFIC_HEAT  # in W/m·K
 
         a1, b1, c1 = params1
-        y_fitted1 = a1 + b1 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (times1 + c1))
+        y_fitted1 = a1 + b1 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times1 + c1))
 
         a2, b2, c2 = params2
-        y_fitted2 = a2 + b2 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (times2 + c2))
+        y_fitted2 = a2 + b2 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times2 + c2))
 
         # Update the ColumnDataSource data for both lines
-        source.data = {'times1': times1, 'times2': times2,
+        print(len(fitted_graph_times1))
+        print(len(live_graph_times1))
+        source.data = {'times1': fitted_graph_times1, 'times2': fitted_graph_times2,
                        'temps1': temps1_pr, 'temps2': temps2_pr,
                        'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
-        source2.data = {'times1': times1, 'times2': times2,
-                        'temps1': temps1, 'temps2': temps2}
+        source2.data = {'times1': live_graph_times1, 'times2': live_graph_times2,
+                        'temps1': live_graph_temps1, 'temps2': live_graph_temps2}
+        fitted_range_shader.left = fitted_graph_times1[-1]
+        fitted_range_shader.fill_alpha = 0.2
         textD.text = f"Diffusivity (mm^2/s): {round(diffusivity, 6)}"
         textC.text = f"Conductivity (W/mK): {round(conductivity, 6)}"
         textR1.text = f"TC1 R^2: {round(adjusted_r_squared1, 6)}"
