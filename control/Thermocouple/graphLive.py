@@ -37,7 +37,9 @@ UPDATE_WAIT = 1000  # in ms, time between updating plot
 TC_TIME_SHIFT = 0.68  # Time difference between TCs (.68)
 SAMPLING_RATE = 0.3959535  # amount of time between points, .01 for csv (maybe changed, must reinvestigate)
 PERIODS_TO_VIEW = 5  # Determines how many periods of the sine curve will be graphed
-MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+FITTED_GRAPH_MAX_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+LIVE_GRAPH_MAX_BUFFER = int(13000./SAMPLING_RATE)
+
 
 DATABASE_NAME = 'server/angstronomers.sqlite3'
 TEST_DIR_TABLE_NAME = "test_directory"
@@ -92,13 +94,13 @@ def modify_doc(doc):
 
     def update_data():
         # Get Main TC Data
-        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L, MAX_GRAPH_BUFFER
+        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L, FITTED_GRAPH_MAX_BUFFER
         cursor.execute(f'''SELECT relTime, temp1, temp2
                           FROM {TABLE_NAME_TC}
                           WHERE datetime > ?
                           ORDER BY relTime DESC
-                          LIMIT ?''', (TIMESTAMP_FRQ_CHANGE,MAX_GRAPH_BUFFER,))
-        results = cursor.fetchall()
+                          LIMIT ?''', (TIMESTAMP_FRQ_CHANGE,LIVE_GRAPH_MAX_BUFFER,))
+        temp_table_results = cursor.fetchall()
 
         # Get Other TC Data
         cursor.execute(f'''SELECT temp3, temp4, temp5, temp6, temp7, temp8
@@ -119,7 +121,7 @@ def modify_doc(doc):
             OPAMP_FREQUENCY = new_frq
             TIMESTAMP_FRQ_CHANGE = resultsP[0][1]
             if OPAMP_FREQUENCY != 0:
-                MAX_GRAPH_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
+                FITTED_GRAPH_MAX_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
 
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
@@ -131,13 +133,20 @@ def modify_doc(doc):
         SPECIFIC_HEAT = resultsC[0][1]
         L = resultsC[0][2]
 
-        # Add data
-        times1 = [row[0] for row in results]
-        temps1 = [row[1] for row in results]
-        temps2 = [row[2] for row in results]
+        # Add data for live plot (plot2)
+        live_graph_times1 = [row[0] for row in temp_table_results]
+        live_graph_temps1 = [row[1] for row in temp_table_results]
+        live_graph_temps2 = [row[2] for row in temp_table_results]
 
-        # Fix timing for temps2
-        times2 = [x+TC_TIME_SHIFT for x in times1]
+        # Fix timing for live_temps2
+        live_graph_times2 = [x+TC_TIME_SHIFT for x in live_graph_times1]
+
+        if len(live_graph_temps1)>FITTED_GRAPH_MAX_BUFFER:
+            fitted_graph_temps1 =live_graph_temps1[-FITTED_GRAPH_MAX_BUFFER:]
+            fitted_graph_temps2 =live_graph_temps2[-FITTED_GRAPH_MAX_BUFFER:]
+
+        #########################################################################
+        # LEFT OFF HERE    
 
         # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
         temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
