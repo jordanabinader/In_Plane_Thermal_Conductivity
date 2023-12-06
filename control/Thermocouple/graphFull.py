@@ -202,26 +202,25 @@ def modify_doc(doc):
         sel_bound.right = upper_bound
         sel_bound.fill_alpha = 0.2
         sel_bound.fill_color = "gray"
-
+        
+        global OPAMP_FREQUENCY
+        OPAMP_FREQUENCY = using_frequency
+        
+        if FIT_MY_DATA:
+            temps1_pr = ut.process_data(temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
+            temps2_pr = ut.process_data(temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
+        else:
+            temps1_pr = temps1
+            temps2_pr = temps2
+            
         # return index of value closest to lower or upper bound
         lb_index = min(range(len(times1)), key=lambda i: abs(times1[i] - lower_bound))
         ub_index = min(range(len(times1)), key=lambda i: abs(times1[i] - upper_bound))
 
         times1_plot = times1[lb_index:ub_index]
         times2_plot = times2[lb_index:ub_index]
-        temps1_plot = temps1[lb_index:ub_index]
-        temps2_plot = temps2[lb_index:ub_index]
-        
-        
-        global OPAMP_FREQUENCY
-        OPAMP_FREQUENCY = using_frequency
-        
-        if FIT_MY_DATA:
-            temps1_plot_pr = ut.process_data(temps1_plot, SAMPLING_RATE, OPAMP_FREQUENCY)
-            temps2_plot_pr = ut.process_data(temps2_plot, SAMPLING_RATE, OPAMP_FREQUENCY)
-        else:
-            temps1_plot_pr = temps1_plot
-            temps2_plot_pr = temps2_plot
+        temps1_plot_pr = temps1_pr[lb_index:ub_index]
+        temps2_plot_pr = temps2_pr[lb_index:ub_index]
 
         params1, adjusted_r_squared1 = ut.fit_data(temps1_plot_pr, times1_plot, OPAMP_FREQUENCY)
         params2, adjusted_r_squared2 = ut.fit_data(temps2_plot_pr, times2_plot, OPAMP_FREQUENCY)
