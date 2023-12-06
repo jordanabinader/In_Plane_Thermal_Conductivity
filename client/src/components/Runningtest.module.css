@@ -1,0 +1,9 @@
+.stickyDiv {
+    position: sticky;
+    top: 50px;
+    right: 0;
+    background-color: gray;
+    padding: 10px;
+    z-index: 50px;
+  }
+  

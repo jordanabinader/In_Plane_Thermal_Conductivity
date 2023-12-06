@@ -46,7 +46,7 @@ const TestConstants = () => {
       }
 
       const response = await axios.post('http://localhost:2999/startTest', testSetup);
-      console.log('Test started successfully:', response.data);
+      console.log('Test started successfully:');
       testId = response.data.testId; 
       setIsCompliant(true);
       } catch (error) {
@@ -57,28 +57,38 @@ const TestConstants = () => {
         setErrorMessage(errorMessageIn); // Display the error message in UI
         return;
       } 
+    
+    
+    try {
+      const response = await axios.get(`http://localhost:2999/queryLastRow/test_directory`);
+      console.log('Success looking for active tests:', response.data.active)
+      if (response.data.active === 1) {
+        errorMessageIn = 'Error starting test: A test is currently running!'
+        setIsCompliant(false);
+        setErrorMessage(errorMessageIn);
+        return; 
+      } else {
+        setIsCompliant(true);
+      }
+    } catch (error) {
+      console.error("Error fetching the last row:", error.message);
+    }
+    
 
     try {
 
       setIsLoading(true);
 
-      //returns 200 if picotalker is up and 404 if picotalker not up or Json one key is live, error, timeout, connection refused      
-      const responseStart = await axios.put('http://localhost:3002/test-start') 
-        .then(response => {
-          if (response.status === 200) {
-            router.push(`/test/${testId}`);
-            setTimeout(() => {
-              setIsLoading(false);
-            }, 500);
-          } else {
-            console.error('Error starting controls: Unexpected response status', response.status);
-            // Handle other statuses here, maybe set loading to false or show an error message
-          }
-        })
-        .catch(error => {
-          console.error('Error starting controls:', error.message);
-          // Handle the error here, maybe set loading to false or show an error message
-        });
+      const responseStart = await axios.put('http://localhost:3002/test-start'); //returns 200 if picotalker is up and 404 if picotalker not up or Json one key is live, error, timeout, connection refused
+      
+      if (responseStart.status === 200) {
+        router.push(`/test/${testId}`);
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
+      } else {
+        console.error('Error starting controls: Unexpected response status', responseStart);
+      }
 
     } catch (error) {
 
@@ -113,7 +123,7 @@ const TestConstants = () => {
           <div className="border-l border-gray-300 px-14">
             {!isCompliant && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <strong className="font-bold">Wrong Input Types! </strong>
+                <strong className="font-bold">Error! </strong>
                 <span className="block sm:inline">{errorMessage}</span>
             </div>
             )}

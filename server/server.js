@@ -27,6 +27,22 @@ app.get('/queryRowsByTestId/:tableName/:testId', async (req, res) => {
   }
 });
 
+// Route to query the last row of a specified table
+app.get('/queryLastRow/:tableName', async (req, res) => {
+  try {
+    const tableName = req.params.tableName;
+    const lastRow = await dbFunctions.queryLastRow(tableName);
+    
+    // If lastRow is 0, it means the table does not exist
+    if (lastRow === 0) {
+      return res.status(404).send('Table does not exist or no rows in the table.');
+    }
+    res.json(lastRow);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
 // Route to delete a table
 app.delete('/deleteTable/:tableName', async (req, res) => {
   try {

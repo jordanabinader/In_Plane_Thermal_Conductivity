@@ -25,6 +25,27 @@ async function queryRowsByTestId(tableName, testId) {
     throw error;
   }
 }
+//7133
+
+// Get last row of the test_directory table
+async function queryLastRow(table_name) {
+  try {
+    // Check if the table exists
+    const tableExists = await knex.schema.hasTable(table_name);
+    if (!tableExists) {
+      return 0;
+    }
+
+    // If the table exists, proceed to get the last row
+    const row = await knex(table_name).orderBy('testId', 'desc').first();
+    return row;
+  } catch (error) {
+    console.error("Error in queryLastRow:", error);
+    throw error;
+  }
+}
+
+
 
 // Function to delete a table
 async function deleteTestByTestId(testId) {
@@ -73,7 +94,7 @@ async function testEndActive(insertId) {
   try {
     await knex({testDirectoryTableName})
     .where({ testID: insertId })
-    .update({ active: 'False' });
+    .update({ active: false});
   } catch (error) {
     console.error('Error in stop active update function:', error);
     throw new Error(`Failed to change active status for test ID ${insertId}: ${error.message}`);
@@ -124,7 +145,7 @@ async function startTest(form) {
       density: form.density,
       specificHeatCapacity: form.specificHeatCapacity,
       tcDistance: form.tcDistance,
-      active: 'True',
+      active: true,
     });
 
     // SQLite3 last inserted row ID
@@ -194,5 +215,6 @@ module.exports = {
   startTest,
   changeTestSetting,
   testEndActive,
-  deleteTestByTestId
+  deleteTestByTestId,
+  queryLastRow
 };
