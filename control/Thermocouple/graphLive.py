@@ -25,7 +25,8 @@ TABLE_NAME_PARAM = "test_settings_" + TEST_ID
 
 # Changes Live from Database Query
 OPAMP_FREQUENCY = .000797  # 1/OpAmp Period, .002 for csv
-TIMESTAMP_FRQ_CHANGE = '2000-01-01 00:00:00'
+CONTROL_AMP = -1
+TIMESTAMP_TS_CHANGE = '2000-01-01 00:00:00'
 
 # Set from Database Query
 DENSITY = 1
@@ -98,12 +99,12 @@ def modify_doc(doc):
 
     def update_data():
         # Get Main TC Data
-        global TIMESTAMP_FRQ_CHANGE, OPAMP_FREQUENCY, DENSITY, SPECIFIC_HEAT, L, FITTED_GRAPH_MAX_BUFFER
+        global TIMESTAMP_TS_CHANGE, OPAMP_FREQUENCY, CONTROL_AMP, DENSITY, SPECIFIC_HEAT, L, FITTED_GRAPH_MAX_BUFFER
         cursor.execute(f'''SELECT relTime, temp1, temp2
                           FROM {TABLE_NAME_TC}
                           WHERE datetime > ?
                           ORDER BY relTime DESC
-                          LIMIT ?''', (TIMESTAMP_FRQ_CHANGE,LIVE_GRAPH_MAX_BUFFER,))
+                          LIMIT ?''', (TIMESTAMP_TS_CHANGE,LIVE_GRAPH_MAX_BUFFER,))
         temp_table_results = cursor.fetchall()
 
         # Get Other TC Data
@@ -115,18 +116,22 @@ def modify_doc(doc):
         results2 = cursor.fetchall()
         
         # Get Parameters Data - Timing + Frequency
-        cursor.execute(f'''SELECT frequency, datetime
+        cursor.execute(f'''SELECT frequency, amplitude, datetime
                         FROM {TABLE_NAME_PARAM}
                         ORDER BY datetime DESC
                         LIMIT 1''')
         resultsP = cursor.fetchall()
         new_frq = resultsP[0][0]
-        if new_frq != OPAMP_FREQUENCY:
+        new_amp = resultsP[0][1]
+        if new_frq != OPAMP_FREQUENCY or new_amp != CONTROL_AMP:
             OPAMP_FREQUENCY = new_frq
-            TIMESTAMP_FRQ_CHANGE = resultsP[0][1]
+            CONTROL_AMP = new_amp
+            TIMESTAMP_TS_CHANGE = resultsP[0][2]
             if OPAMP_FREQUENCY != 0:
-                FITTED_GRAPH_MAX_BUFFER = int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))
-
+                FITTED_GRAPH_MAX_BUFFER = max(5000, int(PERIODS_TO_VIEW * (1 / (OPAMP_FREQUENCY * SAMPLING_RATE)))) #max() So on startup it doesn't default to displaying a super small number of points
+            else:
+                FITTED_GRAPH_MAX_BUFFER = 5000 #Default value if in manual control and freq is set to 0
+                
         # Get Parameters Data - Constants TODO check if works
         cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
                         FROM {TEST_DIR_TABLE_NAME}
@@ -146,10 +151,11 @@ def modify_doc(doc):
         live_graph_times2 = [x+TC_TIME_SHIFT for x in live_graph_times1]
 
         if len(live_graph_temps1)>FITTED_GRAPH_MAX_BUFFER:
-            fitted_graph_temps1 =live_graph_temps1[-FITTED_GRAPH_MAX_BUFFER:]
-            fitted_graph_temps2 =live_graph_temps2[-FITTED_GRAPH_MAX_BUFFER:]
-            fitted_graph_times1 =live_graph_times1[-FITTED_GRAPH_MAX_BUFFER:]
-            fitted_graph_times2 =live_graph_times2[-FITTED_GRAPH_MAX_BUFFER:]
+            
+            fitted_graph_temps1 =live_graph_temps1[:FITTED_GRAPH_MAX_BUFFER] #Returned values from the table are in reverse order with most recent first
+            fitted_graph_temps2 =live_graph_temps2[:FITTED_GRAPH_MAX_BUFFER]
+            fitted_graph_times1 =live_graph_times1[:FITTED_GRAPH_MAX_BUFFER]
+            fitted_graph_times2 =live_graph_times2[:FITTED_GRAPH_MAX_BUFFER]
         else:
             fitted_graph_temps1 =live_graph_temps1
             fitted_graph_temps2 =live_graph_temps2
@@ -161,7 +167,7 @@ def modify_doc(doc):
 
         # Data pre-processing for noise-reduction, signal smoothing, normalization by removing moving average
         temps1_pr = ut.process_data(fitted_graph_temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
-        temps2_pr = ut.process_data(fitted_graph_temps1, SAMPLING_RATE, OPAMP_FREQUENCY)
+        temps2_pr = ut.process_data(fitted_graph_temps2, SAMPLING_RATE, OPAMP_FREQUENCY)
 
         params1, adjusted_r_squared1 = ut.fit_data(temps1_pr, fitted_graph_times1, OPAMP_FREQUENCY)
         params2, adjusted_r_squared2 = ut.fit_data(temps2_pr, fitted_graph_times1, OPAMP_FREQUENCY)
@@ -222,6 +228,8 @@ def modify_doc(doc):
         y_fitted2 = a2 + b2 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times2 + c2))
 
         # Update the ColumnDataSource data for both lines
+        print(len(fitted_graph_times1))
+        print(len(live_graph_times1))
         source.data = {'times1': fitted_graph_times1, 'times2': fitted_graph_times2,
                        'temps1': temps1_pr, 'temps2': temps2_pr,
                        'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
