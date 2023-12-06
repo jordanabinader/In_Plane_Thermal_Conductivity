@@ -64,8 +64,12 @@ This project integrates various components such as server, database, web applica
   git clone https://github.com/jordanabinader/In_Plane_Thermal_Conductivity.git
   cd In_Plane_Thermal_Conductivity/
   ```
-
-10. **Install node dependencies**:
+10. **Setup the python virtual environment**
+  ```
+  python3.11 -m venv iptc_venv
+  ```
+  
+11. **Install node dependencies**:
    - For the client:
        ```
        cd client
@@ -78,7 +82,7 @@ This project integrates various components such as server, database, web applica
        npm install
        cd ../
        ```
-11. **Install python dependencies**
+12. **Install python dependencies**
   ```
   source iptc_venv/bin/activate
   python3.11 -m pip install -r requirements.txt
