@@ -247,6 +247,7 @@ def modify_doc(doc):
         source2.data = {'times1': live_graph_times1, 'times2': live_graph_times2,
                         'temps1': live_graph_temps1, 'temps2': live_graph_temps2}
         fitted_range_shader.left = fitted_graph_times1[-1]
+        fitted_range_shader.right = fitted_graph_times1[0]
         fitted_range_shader.fill_alpha = 0.2
         
         
