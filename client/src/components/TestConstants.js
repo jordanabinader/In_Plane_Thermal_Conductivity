@@ -62,16 +62,23 @@ const TestConstants = () => {
 
       setIsLoading(true);
 
-      const responseStart = await axios.put('http://localhost:3002/test-start'); //returns 200 if picotalker is up and 404 if picotalker not up or Json one key is live, error, timeout, connection refused
-      
-      if (responseStart.status === 200) {
-        router.push(`/test/${testId}`);
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 500);
-      } else {
-        console.error('Error starting controls: Unexpected response status', responseStart);
-      }
+      //returns 200 if picotalker is up and 404 if picotalker not up or Json one key is live, error, timeout, connection refused      
+      const responseStart = await axios.put('http://localhost:3002/test-start') 
+        .then(response => {
+          if (response.status === 200) {
+            router.push(`/test/${testId}`);
+            setTimeout(() => {
+              setIsLoading(false);
+            }, 500);
+          } else {
+            console.error('Error starting controls: Unexpected response status', response.status);
+            // Handle other statuses here, maybe set loading to false or show an error message
+          }
+        })
+        .catch(error => {
+          console.error('Error starting controls:', error.message);
+          // Handle the error here, maybe set loading to false or show an error message
+        });
 
     } catch (error) {
 
