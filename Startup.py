@@ -77,33 +77,13 @@ async def startTestHandler(request:web.Request) -> web.StreamResponse:
         "Pico_Talker": {
             "alive_url": f"http://localhost:{PICO_TALKER_NETWORK_PORT}{PICO_TALKER_LIVE_ENDPOINT}",
             "status": 0
-        },
-        "graphLive": {
-            "alive_url": f"http://localhost:{GRAPH_LIVE_PORT}{GRAPH_LIVE_END_POINT}",
-            "status": 0
         }
     }
-    # Kill Graph Full
-    if GRAPH_FULL_PROC is not None: #If graph full is a running process
-        GRAPH_FULL_PROC.terminate()
-        max_exit = 10
-        i = 0
-        err = True
-        while i<max_exit:
-            if GRAPH_FULL_PROC.poll() is None:
-                time.sleep(0.5)
-                i += 1
-            else:
-                err = False
-                break
-        
-        if err == True:
-            return web.json_response({"graphFull": GRAPH_FULL_PROC.pid}, status=404)
-
+    
     #Start processes
     PICO_TALKER_PROC = subprocess.Popen(PICO_TALKER_START)
     READ_DAQ_PROC = subprocess.Popen(READ_DAQ_START)
-    GRAPH_LIVE_PROC = subprocess.Popen(GRAPH_LIVE_START)
+    # GRAPH_LIVE_PROC = subprocess.Popen(GRAPH_LIVE_START)
     time.sleep(5)
     return web.Response(status=200)
 
@@ -161,10 +141,6 @@ def endTestHandler(request:web.Request) -> web.StreamResponse:
         "Read_DAQ": {
             "proc": READ_DAQ_PROC,
             "err": True
-        },
-        "graphLive": {
-            "proc": GRAPH_LIVE_PROC,
-            "err": True
         }
     }
     
@@ -189,11 +165,8 @@ def endTestHandler(request:web.Request) -> web.StreamResponse:
                 errored_proc[key] = proc_kill[key]["proc"].pid
         return web.json_response(errored_proc, status=404)
     
-    #Start Processes
-    GRAPH_FULL_PROC = subprocess.Popen(GRAPH_FULL_START)
-
     return web.Response(status=200)
-        
+    
 def signalGracefulExit(*args):
     """End all the processes when the test is done to make sure that the ports close out nicely
     """
@@ -293,6 +266,8 @@ if __name__ == "__main__":
     CLIENT_PROC = subprocess.Popen(UNBUILT_NODE_CLIENT_START)
     #Start Up Graph Full
     GRAPH_FULL_PROC = subprocess.Popen(GRAPH_FULL_START)
+    #Start Up Graph Live
+    GRAPH_LIVE_PROC = subprocess.Popen(GRAPH_LIVE_START)
 
     #Signal Handler to exit all process
     signals = (signal.SIGTERM, signal.SIGINT)
