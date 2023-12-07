@@ -1,5 +1,5 @@
 import React from "react";
-import TestNav from '@/components/TestNav'
+import NavBar from "@/components/Nav";
 import Footer from "@/components/Footer";
 
 export default function DashboardLayout({
@@ -7,7 +7,7 @@ export default function DashboardLayout({
   }) {
     return (
       <section>
-        <TestNav/>
+        <NavBar/>
         {children}
       </section>
     )
