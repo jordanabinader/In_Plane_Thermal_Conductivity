@@ -6,6 +6,7 @@ import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from
 import PreviousJobsTable from './PreviousJobsTable'
 import axios from 'axios';
 
+
 const sortOptions = [
   { name: 'Date', href: '#', current: true },
   { name: 'Conductivity', href: '#', current: false },
