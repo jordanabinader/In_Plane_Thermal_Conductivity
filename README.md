@@ -11,8 +11,8 @@ This project integrates various components such as server, database, web applica
     - Pico_Talker.py: Setting the duty cycle of the heaters based on the control mode set by the user in the website.
   - *Thermocouple*
     - writeFromDAQ.py: Recieves the data from the TC-08 DAQ and writes the temperatures to the temperature table in the database
-    - graphLive.py: Active when a test is in progress, shutdown when there is no live test. Plots the live temperature data along side calculated sin fit.
-    - graphFull.py: Active when there is no live test, shutdown when there is a live test. Similar functionality to graphLive.py but for going back through old data. 
+    - graphLive.py: Plots the live temperature data along side calculated sin fit for active tests.
+    - graphFull.py: Similar functionality to graphLive.py but for looking at the data of previous tests. 
 
 
 ## Using the Repository

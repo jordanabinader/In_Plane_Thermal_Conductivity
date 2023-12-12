@@ -226,8 +226,8 @@ def modify_doc(doc):
             y_fitted2 = a2 + b2 * np.sin(2 * np.pi * OPAMP_FREQUENCY * (fitted_graph_times2 + c2))
 
             # Update the ColumnDataSource data for both lines
-            print(len(fitted_graph_times1))
-            print(len(live_graph_times1))
+            # print(len(fitted_graph_times1))
+            # print(len(live_graph_times1))
             source.data = {'times1': fitted_graph_times1, 'times2': fitted_graph_times2,
                         'temps1': temps1_pr, 'temps2': temps2_pr,
                         'temps1fit': y_fitted1, 'temps2fit': y_fitted2}
@@ -299,7 +299,7 @@ def bkapp_page(test_id):
     TEST_ID = test_id
     TABLE_NAME_TC = "temperature_table_" + TEST_ID
     TABLE_NAME_PARAM = "test_settings_" + TEST_ID
-    script = server_document('http://localhost:5006/bkapplive/live')
+    script = server_document('http://localhost:5007/bkapplive/live')
     return render_template("embed.html", script=script, template="Flask")
 
 
@@ -309,8 +309,8 @@ def alive_check():
 
 
 def bk_worker():
-    server = Server({'/bkapplive/live': modify_doc}, io_loop=IOLoop(),
-                    allow_websocket_origin=["localhost:8123", "127.0.0.1:8123"])
+    server = Server({'/bkapplive/live': modify_doc}, io_loop=IOLoop(), port = 5007,
+                    allow_websocket_origin=["localhost:8125", "127.0.0.1:8125"])
     server.start()
     server.io_loop.start()
 
@@ -329,4 +329,4 @@ if __name__ == '__main__':
     for s in signals:
         signal.signal(s, gracefulExit)
 
-    app.run(port=8123)
+    app.run(port=8125)
