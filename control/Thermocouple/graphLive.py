@@ -242,7 +242,7 @@ def modify_doc(doc):
             textR1.text = f"TC1 R^2: N/A"
             textR2.text = f"TC2 R^2: N/A"
             source.data = {'times1': fitted_graph_times1, 'times2': fitted_graph_times2,
-                        'temps1': temps1_pr, 'temps2': temps2_pr}
+                        'temps1': fitted_graph_temps1, 'temps2': fitted_graph_temps2}
 
         source2.data = {'times1': live_graph_times1, 'times2': live_graph_times2,
                         'temps1': live_graph_temps1, 'temps2': live_graph_temps2}
