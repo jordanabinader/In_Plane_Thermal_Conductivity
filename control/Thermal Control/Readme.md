@@ -36,7 +36,7 @@ This PCB was designed after initial assemblies on protoboards had hazards in the
 - 1 oz outer copper weight
 - HASL (with lead) 
 
-![Image of the Assembled IPTC Power Distribution and Control PCB designed by Ben Veghte](IPTC%20Power%20Distribution%20and%20Control%20PCB.jpg)
+![Image of the Assembled IPTC Power Distribution and Control PCB designed by Ben Veghte](/.imgs/IPTC%20Power%20Distribution%20and%20Control%20PCB.jpg)
 
 The code, in the [IPTC_heater_control](IPTC_heater_control/) folder, can be uploaded directly to the Raspberry Pi Pico on the PCB. Although the PCB has pins broken out for SPI, intended for MAX31855KASA breakout boards, the arduino code and Pico_Talker.py in the current state does not support the use of these pins. If you wish to add this functionality, make the changes necessary and submit a pull-request to the repository. In order to make the addition as seamless as possible, follow the [Serial Communication Pattern](Serial%20Communication%20Pattern.md).
 
