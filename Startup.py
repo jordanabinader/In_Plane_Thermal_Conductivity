@@ -233,7 +233,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--startup-port", default=3002, help="Network port that this start up script listens too")
     parser.add_argument("--database", default="server/angstronomers.sqlite3")
-    parser.add_argument("--serial-port", default=None, help="Serial port that the Raspberry Pi Pico PCB is connected to")
+    parser.add_argument("--serial-port", default="/dev/ttyACM0", help="Serial port that the Raspberry Pi Pico PCB is connected to")
     parser.add_argument("--baudrate", default=115200, help="Baud rate the Raspberry Pi Pico PCB communicates with")
     parser.add_argument("--pico-talker-network-port", default = 3001, help="Network port that the Pico Talker script is listening too")
     args = parser.parse_args()
