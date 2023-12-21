@@ -1,5 +1,17 @@
 # In-Plane Thermal Conductivity Project
 
+## Table of Contents
+- [In-Plane Thermal Conductivity Project](#in-plane-thermal-conductivity-project)
+  - [Table of Contents](#table-of-contents)
+  - [Description](#description)
+  - [Project Structure](#project-structure)
+  - [Using the Repository](#using-the-repository)
+    - [Installation](#installation)
+    - [Running the program](#running-the-program)
+    - [Exiting the program](#exiting-the-program)
+  - [Database Schema](#database-schema)
+  - [TC08 Note](#tc08-note)
+
 ## Description
 This project integrates various components such as server, database, web application, controls, and computations for in-plane thermal conductivity analysis. It utilizes a robust Node.js server and a responsive front-end built with Next.js alongside several python scripts communicating with the hardware.
 
@@ -105,9 +117,16 @@ Your current working directory should be the base folder of the In_Plane_Thermal
   ```
   python3.11 Startup.py --serial-port /dev/ttyACM0
   ```
-4. To end all the scripts `ctrl+c` the command above.
 
-Any necessary terminal commands you need to do while the webserver is active, do in a different terminal window
+### Exiting the program
+1. In the terminal window running Startup.py from the command above, hit `ctrl+c`
+  
+   - A normal exit will look similar to below
+![Image of a nominal exit of the python script](/.imgs/nominal_script_exit.jpg)
+   - If you see more than 3 or 4 print statments in a row that say `{SOMETHING} not shutting down`  the heater control board should be unplugged from and the computer restarted as this means that something went wrong in the shutdown process and the heaters can cause damage if left running while powered
+
+It is also worthwhile to check the terminal output after ending a test to ensure that the heaters get turned off the the thermocouple DAQ gets deactivated properly. The terminal output at the end of a test should look something like the image below. Similar to the what happens when the whole system gets shutdown: If you see more than 3 or 4 print statments in a row that say `{SOMETHING} not shutting down`  the heater control board should be unplugged from and the computer restarted as this means that something went wrong in the shutdown process and the heaters can cause damage if left running while powered. 
+![Image of the terminal output when a test is ended properly](/.imgs/nominal_test_end.jpg)
 
 
 ## Database Schema
