@@ -8,7 +8,7 @@ import axios from 'axios';
 
 
 const sortOptions = [
-  { name: 'Date', href: '#', current: true },
+  { name: 'Date', href: '#', current: false },
   { name: 'Conductivity', href: '#', current: false },
   { name: 'Diffusivity', href: '#', current: false },
   { name: 'Density', href: '#', current: false },
@@ -59,6 +59,7 @@ export default function FilterTable() {
   const fetchData = async () => {
     try {
       const response = await axios.get(`http://localhost:2999/queryAllRows/test_directory`);
+      console.log(response.data)
       setOriginalData(response.data);
       setData(response.data)
     } catch (err) {
@@ -73,7 +74,7 @@ export default function FilterTable() {
   useEffect(() => {
     filterData()
   }, [filters])
-  
+
   const handleChange = (id, value, type) => {
     const updatedFilters = filters.map(f => {
       if (f.id === id) {
@@ -140,7 +141,7 @@ export default function FilterTable() {
       let sortedData = [...data];
       switch (option) {
         case 'date':
-          sortedData.sort((a, b) => new Date(a.date) - new Date(b.date));
+          sortedData.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));        
           break;
         case 'conductivity':
           sortedData.sort((a, b) => a.conductivity - b.conductivity);
@@ -154,7 +155,7 @@ export default function FilterTable() {
         case 'specific heat':
           sortedData.sort((a, b) => a.specificHeatCapacity - b.specificHeatCapacity);
           break;
-        case 'tc Distance':
+        case 'tc distance':
           sortedData.sort((a, b) => a.tcDistance - b.tcDistance);
           break;
         default:
@@ -176,7 +177,7 @@ export default function FilterTable() {
     // Sort data when sortOption changes
     useEffect(() => {
       sortData(sortOption);
-    }, [sortOption]);  
+    }, [sortOption]);    
 
   function classNames(...classes) {
     return classes.filter(Boolean).join(' ');

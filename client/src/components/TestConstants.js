@@ -43,10 +43,12 @@ const TestConstants = () => {
       if (response.data.active === 1) {
         errorMessageIn = 'Error starting test: A test is currently running!'
         setIsCompliant(false);
+        setIsModalOpen(false);
         setErrorMessage(errorMessageIn);
         return; 
       } else {
         setIsCompliant(true);
+        setIsModalOpen(false);
       }
     } catch (error) {
       console.error("Error fetching the last row:", error.message);
