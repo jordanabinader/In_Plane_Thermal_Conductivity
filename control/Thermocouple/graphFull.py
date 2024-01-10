@@ -124,6 +124,7 @@ def modify_doc(doc):
         sourceP.data['relTime'] += list(relTime)
         sourceP.data['timestamp'] += list(timestamp)
         sourceP.data['frq'] += list(frq)
+        plot.vspan(x = sourceP.data['relTime'], alpha = 0.7, color = 'black', line_dash = "dashed")
 
     # Get Parameters Data - Constants TODO check if works
     cursor.execute(f'''SELECT density, specificHeatCapacity, tcDistance
