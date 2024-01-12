@@ -127,6 +127,8 @@ async function startTest(form) {
         table.float('density'); // Changed from real to float
         table.float('specificHeatCapacity');
         table.datetime('datetime');
+        table.float('lowerTime');
+        table.float('upperTime');
         table.float('diffusivity');
         table.integer('tcDistance');
         table.float('conductivity');

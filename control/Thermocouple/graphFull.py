@@ -292,11 +292,55 @@ def modify_doc(doc):
         textR1.text = f"TC1 R^2: {adjusted_r_squared1}"
         textR2.text = f"TC1 R^2: {adjusted_r_squared2}"
 
+        #Update diffusivity, conductivity, and start and end times in database
+        conn = sqlite3.connect(DATABASE_NAME)
+        cursor = conn.cursor()
+        cursor.execute(f"""UPDATE {TEST_DIR_TABLE_NAME} SET 
+                       lowerTime = {lower_bound},
+                       upperTime = {upper_bound},
+                       diffusivity = {diffusivity:.3f},
+                       conductivity = {conductivity:.3f}
+                       WHERE testId = {TEST_ID}
+                       """)
+        conn.commit()
+        cursor.close()
+        conn.close()
+
     # Create input fields for upper and lower bounds
-    lb_input = TextInput(value="1000", title="Enter Lower Bound:")
-    ub_input = TextInput(value="2000", title="Enter Upper Bound")
+    lb_input = TextInput(value="0", title="Enter Lower Bound:")
+    ub_input = TextInput(value="500", title="Enter Upper Bound")
+    #Update textinput boxes with saved values
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT lowerTime, upperTime FROM {TEST_DIR_TABLE_NAME} WHERE testId = {TEST_ID}")
+    res = cursor.fetchall()
+    db_lb = res[0][0]
+    db_ub = res[0][1]
+    if db_ub is not None:
+        ub_input.value = str(db_ub)
+    if db_lb is not None:
+        lb_input.value = str(db_lb)
+    cursor.close()
+    conn.close()
+
     lb_input.on_change("value", update_plot)
     ub_input.on_change("value", update_plot)
+    
+    #Update textinput boxes with saved values
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT lowerTime, upperTime FROM {TEST_DIR_TABLE_NAME} WHERE testId = {TEST_ID}")
+    res = cursor.fetchall()
+    print(res)
+    db_lb = res[0][0]
+    db_ub = res[0][1]
+    if db_ub is not None:
+        ub_input.value = str(db_ub)
+    if db_lb is not None:
+        lb_input.value = str(db_lb)
+    cursor.close()
+    conn.close()
+
 
     #Create field for valid input of lower and upper bound
     bound_warn = Div(text="", styles={'color': 'red'})
@@ -305,6 +349,9 @@ def modify_doc(doc):
     # Create input field for frequency
     # frq_input = TextInput(value=".005", title="Enter Frequency (Hz):")
     # frq_input.on_change("value", update_plot)
+
+    if db_ub is not None or db_lb is not None:
+        update_plot(None, None, None)
     
     def save_to_csv():
         # Connect to the database
