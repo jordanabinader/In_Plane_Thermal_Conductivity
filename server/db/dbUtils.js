@@ -129,7 +129,7 @@ async function startTest(form) {
         table.datetime('datetime');
         table.float('diffusivity');
         table.integer('tcDistance');
-        table.float('conductivty');
+        table.float('conductivity');
         table.boolean('active');
       });
       console.log('Table created');
