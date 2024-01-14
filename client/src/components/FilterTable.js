@@ -124,6 +124,7 @@ export default function FilterTable() {
   const handleDelete = async (testId, event) => {
     event.preventDefault();
     try {
+      console.log(testId)
       const response = await axios.delete(`http://localhost:2999/deleteTest/${testId}`);
       console.log(response)
       if (response.status === 200) {

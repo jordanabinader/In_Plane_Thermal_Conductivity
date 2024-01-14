@@ -23,6 +23,26 @@ const TestGraph = (testIdIn) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModal2Open, setIsModal2Open] = useState(false);
 
+    useEffect(() => {
+        // Function to fetch test setting data
+        const fetchTestSetting = async () => {
+            try {
+                const response = await axios.get(`http://localhost:2999/getTestSetting/${testIdIn.testIdIn}`);
+                const { frequency, amplitude } = response.data;
+                setFormData(formData => ({
+                    ...formData,
+                    frequency: frequency || formData.frequency,
+                    amplitude: amplitude || formData.amplitude,
+                    amplitudeManual: amplitude || formData.amplitudeManual
+                }));
+            } catch (error) {
+                console.error('Error fetching test setting:', error);
+            }
+        };
+
+        fetchTestSetting();
+    }, [testIdIn.testIdIn]);
+
     const leftClick = () => {
         setButtonStyle({ left: '0' });
         setTogglePosition('left');

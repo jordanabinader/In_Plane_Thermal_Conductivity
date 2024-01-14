@@ -43,6 +43,23 @@ app.get('/queryLastRow/:tableName', async (req, res) => {
   }
 });
 
+// Route to query the last frequency and amplitude
+app.get('/getTestSetting/:insertId', async (req, res) => {
+  try {
+    const insertId = req.params.insertId;
+    const testSetting = await dbFunctions.getTestSetting(insertId);
+    
+    // If testSetting is null or undefined, it indicates no record was found
+    if (!testSetting) {
+      return res.status(404).send('No record found for the provided insertId.');
+    }
+    res.json(testSetting);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+
 // Route to delete a table
 app.delete('/deleteTable/:tableName', async (req, res) => {
   try {

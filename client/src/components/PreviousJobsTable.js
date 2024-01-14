@@ -10,6 +10,7 @@ const TableComponent = ({ data, handleDelete}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTestId, setSelectedTestId] = useState(null);
 
   // Compute filtered data based on search term
   const filteredData = data.filter(item => 
@@ -29,7 +30,8 @@ const TableComponent = ({ data, handleDelete}) => {
     setCurrentPage((prevCurrentPage) => Math.min(prevCurrentPage + 1, totalPages));
   };
 
-  const handleOpenModal = () => {
+  const handleOpenModal = (testId) => {
+    setSelectedTestId(testId);
     setIsModalOpen(true);
   }
 
@@ -100,7 +102,7 @@ const TableComponent = ({ data, handleDelete}) => {
               
                 <a href={'/previous-jobs/' + row.testId} className="font-medium text-red-600 hover:underline" >Edit</a>
                 <a href="#" 
-                  onClick={handleOpenModal} 
+                  onClick={() => handleOpenModal(row.testId)} 
                   className="font-medium text-red-600 hover:underline ml-2">
                   Delete
                 </a>
@@ -109,7 +111,7 @@ const TableComponent = ({ data, handleDelete}) => {
                   action="Delete Test"
                   onCancel={handleCloseModal}
                   onSubmit={(event) => {
-                    handleDelete(row.testId, event);
+                    handleDelete(selectedTestId, event);
                     handleCloseModal();
                   }} 
                 />                

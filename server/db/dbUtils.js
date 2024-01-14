@@ -90,6 +90,27 @@ async function changeTestSetting(form, insertId) {
   }
 }
 
+async function getTestSetting(insertId) {
+  try {
+
+    const lastRecord = await knex(`${testSettingTableName}_${insertId}`)
+                             .orderBy('datetime', 'desc')
+                             .first();
+
+    if (!lastRecord) {
+      throw new Error('No record found');
+    }
+
+    return {
+      frequency: lastRecord.frequency,
+      amplitude: lastRecord.amplitude
+    }
+  } catch (error) {
+    throw error;
+  }
+}
+
+
 async function testEndActive(insertId) {
   try {
     await knex({testDirectoryTableName})
@@ -218,5 +239,6 @@ module.exports = {
   changeTestSetting,
   testEndActive,
   deleteTestByTestId,
-  queryLastRow
+  queryLastRow,
+  getTestSetting
 };
